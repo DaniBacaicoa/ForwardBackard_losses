@@ -20,7 +20,7 @@ from torchvision import datasets, transforms
 import pandas as pd
 
 
-class Data(Dataset):
+class Data_handling(Dataset):
     '''
     The dataloader returns a pytorch dataset
     inputs:
@@ -113,10 +113,8 @@ class Data(Dataset):
             'optdigits': 28,  # 5620 x 64 - 10
             'cmc': 23,  # 1473 x 9 - 3
             }
-        uci_ids = {
-            'breast-cancer-wisconsin': 699,  # 699 x 9 - 2
-            'diabetes': 768,  # 768 x 8 - 2
-            'heart-disease': 303,  # 303 x 13 - 5
+        uci_ids = {#'breast-cancer-wisconsin': 699,  # 699 x 9 - 2
+            'diabetes': 768,  # 768 x 8 - 2 #'heart-disease': 303,  # 303 x 13 - 5
             'ionosphere': 351,  # 351 x 34 - 2
             'sonar': 208,  # 208 x 60 - 2
             'parkinsons': 195,  # 195 x 22 - 2
@@ -128,6 +126,10 @@ class Data(Dataset):
             'lung-cancer': 32,  # 32 x 56 - 3
             'primary-tumor': 339,  # 339 x 17 - 21
             'mushroom': 8124,  # 8124 x 22 - 2
+            'breast-cancer': 14,
+            'german': 144,
+            'heart': 45,
+            'image':50,
             }
         
         le = sklearn.preprocessing.LabelEncoder()
@@ -182,6 +184,15 @@ class Data(Dataset):
                     raise ValueError("TBD. For now, we don't handle categorical variables.")
                 X = X.values
                 y = le.fit_transform(y) #Tis encodes labels into classes [0,1,2,...,n_classes-1]
+                X, y = sklearn.utils.shuffle(X, y, random_state = self.splitting_seed)
+            elif self.dataset in uci_ids:
+                data = fetch_ucirepo(id = uci_ids[self.dataset])
+                if np.any(data.variables.type[1:]=='Categorical'):
+                    raise ValueError("TBD. For now, we don't handle categorical variables.")
+                X = data.data.features 
+                y = data.data.targets
+                X = X.values
+                y = le.fit_transform(y)
                 X, y = sklearn.utils.shuffle(X, y, random_state = self.splitting_seed)
             elif self.dataset == 'gmm':
                 num_samples = 4000
