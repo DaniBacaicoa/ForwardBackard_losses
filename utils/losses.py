@@ -56,3 +56,86 @@ class FwdBwdLoss(nn.Module):
 
 # Bwd = FwdBwdLoss(pinv(M),I_c)
 # Fwd = FwdBwdLoss(I_d,M)
+
+class LBLoss(nn.Module):
+    def __init__(self, k=1, beta=1):
+        super(LBLoss, self).__init__()
+        self.logsoftmax = torch.nn.LogSoftmax(dim = 1)
+        self.k = k
+        self.beta = beta
+
+
+    def forward(self, inputs, targets):
+        v = inputs - torch.mean(inputs, axis=1, keepdims=True)
+        logp = self.logsoftmax(v)
+        L = - torch.sum(targets * logp) + 0.5 * self.k * torch.sum(torch.abs(v) ** self.beta)
+        return L
+    
+class LBLoss_gpt4o(nn.Module):
+    def __init__(self, k=1, beta=1):
+        super(LBLoss_gpt4o, self).__init__()
+        self.logsoftmax = nn.LogSoftmax(dim=1)
+        self.k = k
+        self.beta = beta
+
+    def forward(self, inputs, targets):
+        # Ensure inputs and targets are on the same device
+        device = inputs.device
+        targets = targets.to(device)
+
+        # Centering the inputs
+        v = inputs - torch.mean(inputs, axis=1, keepdims=True)
+        
+        # Compute log-softmax
+        logp = self.logsoftmax(v)
+        
+        # Compute the loss
+        L = - torch.sum(targets * logp) + 0.5 * self.k * torch.sum(torch.abs(v) ** self.beta)
+        
+        # Normalize by the batch size
+        batch_size = inputs.size(0)
+        L = L / batch_size
+        
+        return L
+
+class EMLoss(nn.Module):
+    def __init__(self,M):
+        super(EMLoss, self).__init__()
+        self.logsoftmax = torch.nn.LogSoftmax(dim=1)
+        self.M = torch.tensor(M)
+        
+    def forward(self,out,z):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logp = self.logsoftmax(out)
+
+        p = torch.exp(logp)
+        M_on_device = self.M.to(out.device)
+        Q = p.detach() * M_on_device[z]
+        #Q = p.detach() * torch.tensor(self.M[z])
+        Q /= torch.sum(Q,dim=1,keepdim=True)
+
+        L = -torch.sum(Q*logp)
+
+        return L
+    
+class OSLCELoss(nn.Module):
+    def __init__(self):
+        super(OSLCELoss, self).__init__()
+        self.logsoftmax = torch.nn.LogSoftmax(dim = 1)
+
+    def hardmax(self, A):
+        #D = torch.eq(A, torch.max(A, axis=1, keepdims=True)[0])
+        D = torch.eq(A, torch.max(A, axis=1, keepdims=True).values)
+        return D.float() / torch.sum(D, axis=1, keepdims=True)
+
+    def forward(self, inputs, targets):
+        logp = self.logsoftmax(inputs)
+        p = torch.exp(logp)
+        num_classes = inputs.size(1)
+
+        if targets.ndim == 1 or targets.size(1) == 1:
+            targets = torch.nn.functional.one_hot(targets, num_classes=inputs.size(1)).float()
+
+        D = self.hardmax(targets * p)
+        L = - torch.sum(D*logp)/ inputs.size(0)# Normalize by batch size
+        return L
