@@ -2,9 +2,9 @@ from src.dataset import Data_handling
 import os
 
 
-def generate_dataset(dataset, batch_size = 16, model_class = 'pll', pll_p = 0.5, number = None):
+def generate_dataset(dataset, corruption, batch_size = 16, model_class = 'pll', pll_p = 0.5, repetitions = 1):
     corruption = 'pll'
-    base_dir = "Datasets"
+    base_dir = "Datasets/weak_datasets"
     folder_path = os.path.join(base_dir, f'{dataset}_{corruption}_p{pll_p}')
 
     # Check if the folder exists, if not, create it

@@ -7,7 +7,7 @@ import os
 import pickle
 
 
-def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, a_number, sound=10):
+def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, rep = None, sound=10):
     # Get the initial learning rate from the optimizer
     initial_lr = optimizer.param_groups[0]['lr']
 
@@ -31,7 +31,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
 
             optimizer.zero_grad()
             outputs = model(inputs)
-            loss = loss_fn(outputs, vl)  # Assuming loss_fn uses vl
+            loss = loss_fn(outputs, vl) 
             loss.backward()
             optimizer.step()
 
@@ -69,7 +69,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
                 detached_train_loss += det_loss_fn(outputs, targets).item()
             detached_train_loss /= len(trainloader.dataset)
 
-            for inputs, _, targets in testloader:
+            for inputs, targets in testloader:
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 detached_test_loss += det_loss_fn(outputs, targets).item()

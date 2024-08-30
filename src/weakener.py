@@ -33,7 +33,10 @@ class Weakener(object):
 
     def generate_M(self, model_class = 'pll', alpha = 1, beta = None, corr_p = 0.5, corr_n = None):
         self.corr_p = corr_p
-        self.corr_n = corr_n
+        if corr_n == None:
+            self.corr_n = corr_p
+        else:
+            self.corr_n = corr_n
 
         if model_class == 'Noisy_Patrini_MNIST':
             # Nose is: 2 -> 7; 3 -> 8; 5 <-> 6; 7 -> 1
@@ -62,6 +65,7 @@ class Weakener(object):
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1. , 0. ],
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1-self.corr_p ]])
         elif model_class == 'Noisy_Natarajan':
+            if 
             #self.M = torch.tensor([
             self.M = np.array([
                 [1-self.corr_n, self.corr_p  ],
