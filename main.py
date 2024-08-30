@@ -8,10 +8,34 @@ import datasets.datasets as dtset
 import utils.losses as losses
 from utils.weakener import Weakener
 from models.model import MLP
-from utils.trainig_testing import train_and_evaluate
+from utils.train_test_loop import train_and_evaluate
 from Dataset_generation import generate_dataset,generate_iris_dataset
 import pickle
 import json
+
+
+def main(dataset_base_path,)
+    if not os.path.exists(dataset_base_path):
+        raise FileNotFoundError(f"{folder_path} folder does not exist.")
+
+    # Archivos en la carpeta
+    files = os.listdir(folder_path)
+    pkl_files = [file for file in files if file.endswith('.pkl')]
+    
+    if not pkl_files:
+        raise FileNotFoundError(f"No .pkl files in folder {folder_path}.")
+    
+    for filename, e in enumerate(pkl_files):
+        file_path = os.path.join(dataset_base_path, filename)
+        with open(file_path, 'rb') as file:
+            Data, Weak = pickle.load(file)
+
+
+
+
+
+
+
 
 def main(reps, epochs, dropout_p, loss_type, pll_p, k=1, beta=1.2, lr= 5e-2, betas = (0.8, 0.99), V=None):
 

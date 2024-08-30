@@ -1,106 +1,106 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, TensorDataset
 import pandas as pd
+import os
+import pickle
 
-# Define your model class
-class MyModel(nn.Module):
-    def __init__(self):
-        super(MyModel, self).__init__()
-        # Define layers here, e.g., self.fc = nn.Linear(input_size, num_classes)
-    
-    def forward(self, x):
-        # Define forward pass here
-        return x
 
-# Define a function to train the model
-def train_model(model, train_loader, criterion, optimizer, device):
-    model.train()
-    running_loss = 0.0
-    correct = 0
-    total = 0
+def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, a_number, sound=10):
+    # Get the initial learning rate from the optimizer
+    initial_lr = optimizer.param_groups[0]['lr']
 
-    for inputs, labels in train_loader:
-        inputs, labels = inputs.to(device), labels.to(device)
+    # Initialize a list to store epoch data
+    results = []
 
-        optimizer.zero_grad()
+    #Only when debbuging
+    #torch.autograd.set_detect_anomaly(True)
 
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
 
-        running_loss += loss.item()
-        _, predicted = torch.max(outputs, 1)
-        correct += (predicted == labels).sum().item()
-        total += labels.size(0)
-
-    train_loss = running_loss / len(train_loader)
-    train_accuracy = 100 * correct / total
-
-    return train_loss, train_accuracy
-
-# Define a function to test the model
-def test_model(model, test_loader, criterion, device):
-    model.eval()
-    running_loss = 0.0
-    correct = 0
-    total = 0
-
-    with torch.no_grad():
-        for inputs, labels in test_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
-
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-
-            running_loss += loss.item()
-            _, predicted = torch.max(outputs, 1)
-            correct += (predicted == labels).sum().item()
-            total += labels.size(0)
-
-    test_loss = running_loss / len(test_loader)
-    test_accuracy = 100 * correct / total
-
-    return test_loss, test_accuracy
-
-# Hyperparameters
-num_epochs = 10
-learning_rate = 0.001
-repetitions = 3
-
-# Assuming you have train_loader and test_loader
-# train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-# test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-# Create a device object
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Initialize DataFrame to store results
-columns = ['epoch', 'repetition', 'lr', 'train_loss', 'test_loss', 'train_accuracy', 'test_accuracy']
-results_df = pd.DataFrame(columns=columns)
-
-# Training loop
-for rep in range(repetitions):
-    model = MyModel().to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    
     for epoch in range(num_epochs):
-        train_loss, train_accuracy = train_model(model, train_loader, criterion, optimizer, device)
-        test_loss, test_accuracy = test_model(model, test_loader, criterion, device)
+        model.train()
 
-        # Store results in DataFrame
-        results_df = results_df.append({
+        running_loss = 0.0
+        correct_train = 0
+
+        for inputs, vl, targets in trainloader:  # Assuming vl and targets are your variables
+            inputs, vl, targets = inputs.to(device), vl.to(device), targets.to(device)
+
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = loss_fn(outputs, vl)  # Assuming loss_fn uses vl
+            loss.backward()
+            optimizer.step()
+
+            # Update batch's loss and accuracy
+            running_loss += loss.item()
+            _, preds = torch.max(outputs, dim=1)
+            _, true = torch.max(targets, dim=1)
+            correct_train += torch.sum(preds == true)
+
+        train_acc = correct_train.double() / len(trainloader.dataset)
+        train_loss = running_loss / len(trainloader.dataset)
+
+        # Evaluate the model on the test set
+        model.eval()
+        correct_test = 0
+        with torch.no_grad():
+            for inputs, targets in testloader: 
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model(inputs)
+
+                _, preds = torch.max(outputs, dim=1)
+                _, true = torch.max(targets, dim=1)
+                correct_test += torch.sum(preds == true)
+
+        test_acc = correct_test.double() / len(testloader.dataset)
+
+        # Calculate detached loss 
+        detached_train_loss = 0.0
+        detached_test_loss = 0.0
+        with torch.no_grad():
+            det_loss_fn = torch.nn.CrossEntropyLoss()  
+            for inputs, _, targets in trainloader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model(inputs)
+                detached_train_loss += det_loss_fn(outputs, targets).item()
+            detached_train_loss /= len(trainloader.dataset)
+
+            for inputs, _, targets in testloader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model(inputs)
+                detached_test_loss += det_loss_fn(outputs, targets).item()
+            detached_test_loss /= len(testloader.dataset)
+
+        # Get the actual learning rate from the optimizer
+        actual_lr = optimizer.param_groups[0]['lr']
+
+        # Store results for this epoch
+        epoch_data = {
             'epoch': epoch + 1,
-            'repetition': rep + 1,
-            'lr': learning_rate,
             'train_loss': train_loss,
-            'test_loss': test_loss,
-            'train_accuracy': train_accuracy,
-            'test_accuracy': test_accuracy
-        }, ignore_index=True)
+            'train_acc': train_acc.item(),
+            'test_acc': test_acc.item(),
+            'train_detached_loss': detached_train_loss,
+            'test_detached_loss': detached_test_loss,
+            'optimizer': type(optimizer).__name__,
+            'loss_fn': type(loss_fn).__name__,
+            'a_number': a_number,
+            'initial_lr': initial_lr,
+            'actual_lr': actual_lr,
+        }
+        results.append(epoch_data)
 
-# Save DataFrame to CSV
-results_df.to_csv('training_results.csv', index=False)
+        if epoch % sound == sound - 1:
+            print(f'Epoch {epoch+1}/{num_epochs}: Train Loss: {train_loss:.4f}, '
+                  f'Train Acc: {train_acc:.4f}, Test Acc: {test_acc:.4f}, '
+                  f'Train Detached Loss: {detached_train_loss:.4f}, Test Detached Loss: {detached_test_loss:.4f}, '
+                  f'Learning Rate: {actual_lr:.6f}')
+
+    # Convert results to DataFrame at the end
+    results_df = pd.DataFrame(results)
+
+    return model, results_df
