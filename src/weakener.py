@@ -65,7 +65,6 @@ class Weakener(object):
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1. , 0. ],
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1-self.corr_p ]])
         elif model_class == 'Noisy_Natarajan':
-            if 
             #self.M = torch.tensor([
             self.M = np.array([
                 [1-self.corr_n, self.corr_p  ],
