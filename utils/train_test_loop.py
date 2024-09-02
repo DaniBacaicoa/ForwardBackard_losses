@@ -8,14 +8,13 @@ import pickle
 
 
 def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, rep = None, sound=10):
-    # Get the initial learning rate from the optimizer
     initial_lr = optimizer.param_groups[0]['lr']
 
     # Initialize a list to store epoch data
     results = []
 
     #Only when debbuging
-    #torch.autograd.set_detect_anomaly(True)
+    torch.autograd.set_detect_anomaly(True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -26,7 +25,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
         running_loss = 0.0
         correct_train = 0
 
-        for inputs, vl, targets in trainloader:  # Assuming vl and targets are your variables
+        for inputs, vl, targets in trainloader: 
             inputs, vl, targets = inputs.to(device), vl.to(device), targets.to(device)
 
             optimizer.zero_grad()
@@ -88,7 +87,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
             'test_detached_loss': detached_test_loss,
             'optimizer': type(optimizer).__name__,
             'loss_fn': type(loss_fn).__name__,
-            'a_number': a_number,
+            'repetition': rep,
             'initial_lr': initial_lr,
             'actual_lr': actual_lr,
         }

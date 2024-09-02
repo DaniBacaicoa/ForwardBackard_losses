@@ -32,9 +32,9 @@ class FwdLoss(nn.Module):
         #L = - torch.sum(torch.log(Mp[z,range(Mp.size(1))]+1e-10))
         return L
     
-class FwdBwdLoss(nn.Module):
+class FwdBwdLoss_simple(nn.Module):
     def __init__(self, B, F):
-        super(FwdLoss, self).__init__()
+        super(FwdBwdLoss_simple, self).__init__()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.logsotmax = torch.nn.LogSoftmax(dim=1)
         self.softmax = torch.nn.Softmax(dim=1)
@@ -56,6 +56,30 @@ class FwdBwdLoss(nn.Module):
 
 # Bwd = FwdBwdLoss(pinv(M),I_c)
 # Fwd = FwdBwdLoss(I_d,M)
+
+class FwdBwdLoss(nn.Module):
+    def __init__(self, B, F, k = 0, beta = 1):
+        super(FwdBwdLoss, self).__init__()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.logsotmax = torch.nn.LogSoftmax(dim=1)
+        self.softmax = torch.nn.Softmax(dim=1)
+        self.B = torch.tensor(B, dtype=torch.float32, device=device)
+        self.F = torch.tensor(F, dtype=torch.float32, device=device)
+        self.k = torch.tensor(k, dtype=torch.float32, device=device)
+        self.beta = torch.tensor(beta, dtype=torch.float32, device=device)
+
+    def forward(self, inputs, z):
+        v = inputs - torch.mean(inputs, axis = 1, keepdims = True)
+        p = self.softmax(v)
+        z = z.long()
+
+        # Loss is computed as z'B'*phi(Ff)
+        Ff = self.F @ p.T 
+        log_Ff = torch.log(Ff)#+1e-8)
+        B_log_Ff = self.B.T @ log_Ff
+        L = - torch.sum(B_log_Ff[z,range(B_log_Ff.size(1))]) + 0.5 * self.k * torch.sum(torch.abs(v)**self.beta)
+        #L = - torch.sum(B_log_Ff[z,range(B_log_Ff.size(1))]+1e-10)
+        return L
 
 class LBLoss(nn.Module):
     def __init__(self, k=1, beta=1):

@@ -329,6 +329,7 @@ class Data_handling(Dataset):
             self.weak_labels = z
         else:
             self.weak_labels = torch.from_numpy(z)
+            
     def include_virtual(self, vy):
         if torch.is_tensor(vy):
             self.virtual_labels = vy
