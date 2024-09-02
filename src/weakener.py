@@ -37,11 +37,12 @@ class Weakener(object):
             self.corr_n = corr_p
         else:
             self.corr_n = corr_n
-
+        self.pll_p = corr_p
+        
         if model_class == 'Noisy_Patrini_MNIST':
             # Nose is: 2 -> 7; 3 -> 8; 5 <-> 6; 7 -> 1
             #self.M = torch.tensor([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
-            self.M = np.array([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+            M = np.array([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 1. , 0. , 0. , 0. , 0. , 0. , self.corr_p, 0. , 0. ],
                       [0. , 0. , 1-self.corr_p, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 0. , 0. , 1-self.corr_p, 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -54,7 +55,7 @@ class Weakener(object):
         elif model_class == 'Noisy_Patrini_CIFAR10':
             #TRUCK → AUTOMOBILE, BIRD → AIRPLANE, DEER → HORSE, CAT ↔ DOG.
             #self.M = torch.tensor([[1. , 0. , self.corr_p , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
-            self.M = np.array([[1. , 0. , self.corr_p , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+            M = np.array([[1. , 0. , self.corr_p , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , self.corr_p ],
                       [0. , 0. , 1-self.corr_p , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 0. , 0. , 1-self.corr_p , 0. , self.corr_p , 0. , 0. , 0. , 0. ],
@@ -66,7 +67,7 @@ class Weakener(object):
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1-self.corr_p ]])
         elif model_class == 'Noisy_Natarajan':
             #self.M = torch.tensor([
-            self.M = np.array([
+            M = np.array([
                 [1-self.corr_n, self.corr_p  ],
                 [self.corr_n  , 1-self.corr_p]])
         elif model_class == 'pu':
@@ -170,11 +171,7 @@ class Weakener(object):
 
         self.M, self.Z, self.labels = self.label_matrix(M)
         self.d = self.M.shape[0]
-        self.Y = np.linalg.pinv(self.M)
-        self.Y_opt = self.virtual_matrix(self, p=None, optimize = True, convex=False)
-        self.Y_conv = self.virtual_matrix(self, p=None, optimize = False, convex=True)
-        self.Y_opt_conv = self.virtual_matrix(self, p=None, optimize = True, convex=True)
-
+        
     def generate_weak(self, y, seed=None):
         # It should work with torch
         # the version of np.random.choice changed in 1.7.0 that could raise an error-
@@ -183,6 +180,11 @@ class Weakener(object):
         self.z = torch.Tensor([np.random.choice(d, p=self.M[:, tl]) for tl in torch.max(y, axis=1)[1]]).to(torch.int32)
 
         self.w = torch.from_numpy(self.Z[self.z.to(torch.int32)] + 0.)
+        self.Y = np.linalg.pinv(self.M)
+        self.Y_opt = self.virtual_matrix(p=None, optimize = True, convex=False)
+        self.Y_conv = self.virtual_matrix(p=None, optimize = False, convex=True)
+        self.Y_opt_conv = self.virtual_matrix(p=None, optimize = True, convex=True)
+
         return self.z, self.w
 
 
@@ -201,7 +203,7 @@ class Weakener(object):
         hat_Y = cvxpy.Variable((c,d))
 
         if c==d:
-            self.Y = np.linalg.pinv(self.M)
+            Y = np.linalg.pinv(self.M)
         elif convex:
             prob = cvxpy.Problem(cvxpy.Minimize(
                 cvxpy.norm(cvxpy.hstack([cvxpy.norm(hat_Y[:, i])**2 * p[i] for i in range(d)]),1)

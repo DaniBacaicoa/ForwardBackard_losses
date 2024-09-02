@@ -8,6 +8,7 @@
 import numpy as np
 
 import openml
+from ucimlrepo import fetch_ucirepo
 
 import sklearn
 
@@ -269,67 +270,67 @@ class Data_handling(Dataset):
         self.train_dataset.targets = torch.eye(self.num_classes)[self.train_dataset.targets]
         self.test_dataset.targets = torch.eye(self.num_classes)[self.test_dataset.targets]
 
-        def __getitem__(self, index):
+    def __getitem__(self, index):
+        if self.weak_labels is None:
+            x = self.train_dataset.data[index]
+            y = self.train_dataset.targets[index]
+            return x, y
+        else:
+            x = self.train_dataset.data[index]
+            w = self.weak_labels[index]
+            y = self.train_dataset.targets[index]
+            return x, w, y
+        
+    def get_dataloader(self, indices = None, weak_labels = None):
+        '''
+        weak_labels(str): 'weak', 'virtual' or None
+        '''
+        #Not sure ifindices is necessary. It works this way
+        if indices is None:
+            indices = torch.Tensor(list(range(len(self.train_dataset)))).to(torch.long)
+        if weak_labels is None: 
+        #(self.weak_labels is None) & (self.virtual_labels is None):
+            tr_dataset = TensorDataset(self.train_dataset.data[indices],
+                                    self.train_dataset.targets[indices])
+        elif weak_labels == 'virtual':
+            if self.virtual_labels is None:
+                print('you must provide virtual labels via include_virtual()')
+                self.train_loader = None
+            else:
+                tr_dataset = TensorDataset(self.train_dataset.data[indices], 
+                                    self.virtual_labels[indices],
+                                    self.train_dataset.targets[indices])
+        elif weak_labels == 'weak':
             if self.weak_labels is None:
-                x = self.train_dataset.data[index]
-                y = self.train_dataset.targets[index]
-                return x, y
+                print('you must provide weak labels via include_weak()')
+                self.train_loader = None
             else:
-                x = self.train_dataset.data[index]
-                w = self.weak_labels[index]
-                y = self.train_dataset.targets[index]
-                return x, w, y
-            
-        def get_dataloader(self, indices = None, weak_labels = None):
-            '''
-            weak_labels(str): 'weak', 'virtual' or None
-            '''
-            #Not sure ifindices is necessary. It works this way
-            if indices is None:
-                indices = torch.Tensor(list(range(len(self.train_dataset)))).to(torch.long)
-            if weak_labels is None: 
-            #(self.weak_labels is None) & (self.virtual_labels is None):
-                tr_dataset = TensorDataset(self.train_dataset.data[indices],
-                                        self.train_dataset.targets[indices])
-            elif weak_labels == 'virtual':
-                if self.virtual_labels is None:
-                    print('you must provide virtual labels via include_virtual()')
-                    self.train_loader = None
-                else:
-                    tr_dataset = TensorDataset(self.train_dataset.data[indices], 
-                                        self.virtual_labels[indices],
-                                        self.train_dataset.targets[indices])
-            elif weak_labels == 'weak':
-                if self.weak_labels is None:
-                    print('you must provide weak labels via include_weak()')
-                    self.train_loader = None
-                else:
-                    tr_dataset = TensorDataset(self.train_dataset.data[indices], 
-                                        self.weak_labels[indices],
-                                        self.train_dataset.targets[indices])
+                tr_dataset = TensorDataset(self.train_dataset.data[indices], 
+                                    self.weak_labels[indices],
+                                    self.train_dataset.targets[indices])
 
-            self.train_loader = DataLoader(tr_dataset, batch_size=self.batch_size, shuffle=self.shuffle,
-                                                            num_workers=0)
-            self.test_loader = DataLoader(TensorDataset(
-                self.test_dataset.data, self.test_dataset.targets
-            ), batch_size=self.batch_size, shuffle=self.shuffle, num_workers=0)
-            return self.train_loader, self.test_loader
-        
-        def get_data(self):
-            train_x = self.train_dataset.data
-            train_y = self.train_dataset.targets
-            test_x = self.test_dataset.data
-            test_y = self.test_dataset.targets
+        self.train_loader = DataLoader(tr_dataset, batch_size=self.batch_size, shuffle=self.shuffle,
+                                                        num_workers=0)
+        self.test_loader = DataLoader(TensorDataset(
+            self.test_dataset.data, self.test_dataset.targets
+        ), batch_size=self.batch_size, shuffle=self.shuffle, num_workers=0)
+        return self.train_loader, self.test_loader
+    
+    def get_data(self):
+        train_x = self.train_dataset.data
+        train_y = self.train_dataset.targets
+        test_x = self.test_dataset.data
+        test_y = self.test_dataset.targets
 
-            return train_x, train_y, test_x, test_y
-        
-        def include_weak(self, z):
-            if torch.is_tensor(z):
-                self.weak_labels = z
-            else:
-                self.weak_labels = torch.from_numpy(z)
-        def include_virtual(self, vy):
-            if torch.is_tensor(vy):
-                self.virtual_labels = vy
-            else:
-                self.virtual_labels = torch.from_numpy(vy)
+        return train_x, train_y, test_x, test_y
+    
+    def include_weak(self, z):
+        if torch.is_tensor(z):
+            self.weak_labels = z
+        else:
+            self.weak_labels = torch.from_numpy(z)
+    def include_virtual(self, vy):
+        if torch.is_tensor(vy):
+            self.virtual_labels = vy
+        else:
+            self.virtual_labels = torch.from_numpy(vy)
