@@ -63,9 +63,12 @@ class LBLoss(nn.Module):
         self.logsoftmax = torch.nn.LogSoftmax(dim = 1)
         self.k = k
         self.beta = beta
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
     def forward(self, inputs, targets):
+        device = inputs.device
+        targets = targets.to(device)
         v = inputs - torch.mean(inputs, axis=1, keepdims=True)
         logp = self.logsoftmax(v)
         L = - torch.sum(targets * logp) + 0.5 * self.k * torch.sum(torch.abs(v) ** self.beta)
