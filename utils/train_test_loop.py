@@ -7,7 +7,7 @@ import os
 import pickle
 
 
-def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, rep = None, sound=10):
+def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, corr_p, rep = None, sound=10):
     initial_lr = optimizer.param_groups[0]['lr']
 
     # Initialize a list to store epoch data
@@ -90,6 +90,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
             'repetition': rep,
             'initial_lr': initial_lr,
             'actual_lr': actual_lr,
+            'corr_p': corr_p,
         }
         results.append(epoch_data)
 

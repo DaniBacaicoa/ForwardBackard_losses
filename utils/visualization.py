@@ -1,30 +1,40 @@
 import seaborn
+import pandas as pd
+import os
 
-#loss_name = ['Forward','F/B optimized','Lower bounded Backward','Convex Back']
-#loss = ['Forward','FBLoss_opt','LBL', 'Back_opt_conv']
-loss_name = ['Forward','F/B optimized','Convex Backward']
-loss = ['Forward','FBLoss_opt', 'Back_opt_conv']
-#loss_name = ['Forward','F/B optimized','Lower bounded Backward']
-#loss = ['Forward','FBLoss_opt','LBL']
-#loss_name = ['Forward']
-#loss = ['Forward']
+losses = ['Forward','FBLoss_opt', 'Back_opt_conv']
+loss_names = ['Forward','F/B optimized','Convex Backward']
 
-ps = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+def candles(folder_path, losses, corruptions):
+    df_list = []
 
-for p in ps:
-    for e,los in enumerate(loss):
-        file = f"Experimental_results({p})/{los}.pkl"
-        with open(file, "rb") as f:
-            k = pickle.load(f)
-            k = k['overall_results']
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.csv'):
+            file_path = os.path.join(folder_path, filename)
+            # Read the CSV file into a DataFrame
+            df = pd.read_csv(file_path)
+            # Append the DataFrame to the list
+            df_list.append(df)
 
-        for i in range(len(k)):
-            new_data = [{'Train accuracy':k[i]['train_acc'][-1].tolist(),
-                        'Test accuracy':k[i]['test_acc'][-1].tolist(),
-                        'Loss':loss_name[e],
-                        'Corruption (p)':p
-                        }]
-            #print(new_data)
-            df_new = pd.DataFrame(new_data)
-            df = pd.concat([df, df_new], ignore_index=True)
-            #df = df.append(df_new, ignore_index=True)
+    merged_df = pd.concat(df_list, ignore_index=True)
+
+    # First plot: Training Set
+    sns.boxplot(x="Corruption (p)", y="Train accuracy",
+                hue="Loss", palette=["m", "g", "b", "y"],
+                data=df, ax=axes[0])
+    sns.despine(offset=10, trim=True, ax=axes[0])
+    axes[0].set_title('Training Set')
+
+    # Second plot: Testing Set
+    sns.boxplot(x="Corruption (p)", y="Test accuracy",
+                hue="Loss", palette=["m", "g", "b", "y"],
+                data=df, ax=axes[1])
+    sns.despine(offset=10, trim=True, ax=axes[1])
+    axes[1].set_title('Testing Set')
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+    plt.show()
+
+def table():
+    
