@@ -75,7 +75,7 @@ class FwdBwdLoss(nn.Module):
 
         # Loss is computed as z'B'*phi(Ff)
         Ff = self.F @ p.T 
-        log_Ff = torch.log(Ff)#+1e-8)
+        log_Ff = torch.log(Ff+1e-8)
         B_log_Ff = self.B.T @ log_Ff
         L = - torch.sum(B_log_Ff[z,range(B_log_Ff.size(1))]) + 0.5 * self.k * torch.sum(torch.abs(v)**self.beta)
         #L = - torch.sum(B_log_Ff[z,range(B_log_Ff.size(1))]+1e-10)

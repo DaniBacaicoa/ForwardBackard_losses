@@ -67,17 +67,17 @@ def main(args):
         trainloader, testloader = Data.get_dataloader(weak_labels='weak')
 
         # Initialize the model
-        #mlp = MLP(Data.num_features, [Data.num_features], Weak.c, dropout_p=0.3, bn=True, activation='relu')
-        lr = MLP(Data.num_features, [], Weak.c, dropout_p=0, bn=False, activation='id')
+        mlp = MLP(Data.num_features, [500], Weak.c, dropout_p=0.3, bn=True, activation='relu')
+        #lr = MLP(Data.num_features, [], Weak.c, dropout_p=0, bn=False, activation='id')
         
         # Initialize the optimizer
-        optim = torch.optim.Adam(lr.parameters(), lr=1e-3)
+        optim = torch.optim.Adam(mlp.parameters(), lr=1e-3)
         
         # Train and evaluate the model
-        #mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
+        #lr, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
         #                                  loss_fn=loss_fn, corr_p=corr_p, num_epochs=100, 
         #                                  sound=10, rep=i)
-        lr, results = train_and_evaluate(lr, trainloader, testloader, optimizer=optim, 
+        mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                           loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                           sound=10, rep=i)
         
@@ -107,3 +107,6 @@ if __name__ == "__main__":
 
 
 #python main.py --reps 10 --dataset segment --loss_type Forward --corruption complementary --corr_p 0.5
+#python main.py --reps 10 --dataset mnist --loss_type Forward --corruption Noisy_Patrini_MNIST --corr_p 0.3 --epochs 50
+#python main.py --reps 10 --dataset mnist --loss_type Backward --corruption Noisy_Patrini_MNIST --corr_p 0.3 --epochs 50
+#python main.py --reps 10 --dataset mnist --loss_type Backward_opt --corruption Noisy_Patrini_MNIST --corr_p 0.3 --epochs 50
