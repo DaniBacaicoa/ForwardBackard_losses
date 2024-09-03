@@ -162,12 +162,13 @@ class Weakener(object):
             M = M / M.sum(0)
             #self.M, self.Z, self.labels = self.label_matrix(M)
 
-        elif model_class == 'Complementary_weak':
+        elif model_class == 'Complementary':
             '''
             This gives a set of candidate labels over the non correct one.
             '''
-            # [TBD]
-            return _
+            M =  np.ones(self.c) - np.eye(self.c)
+            M = M / M.sum(0)
+            
 
         self.M, self.Z, self.labels = self.label_matrix(M)
         self.d = self.M.shape[0]

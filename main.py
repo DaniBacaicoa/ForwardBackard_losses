@@ -3,21 +3,9 @@ import torch
 import torch.nn as nn
 import numpy as np
 import argparse
-
-import datasets.datasets as dtset
-import utils.losses as losses
-from utils.weakener import Weakener
-from models.model import MLP
-from utils.train_test_loop import train_and_evaluate
-from Dataset_generation import generate_dataset,generate_iris_dataset
 import pickle
-import json
+from ucimlrepo import fetch_ucirepo 
 
-import os
-import torch
-import numpy as np
-import pickle
-import argparse
 from src.dataset import Data_handling
 from src.weakener import Weakener
 from src.model import MLP
@@ -32,9 +20,15 @@ def main(args):
     corruption = args.corruption
     corr_p = args.corr_p
     corr_n = args.corr_n
-    loss_type = args.loss_typeç
+    loss_type = args.loss_type
+    epochs = args.epochs
     
     for i in range(reps):
+        generate_dataset(dataset=dataset,corruption=corruption,corr_p=corr_p,repetitions=i)
+
+
+    for i in range(reps):
+        
         base_dir = dataset_base_path
         if corr_n is not None:
             folder_path = os.path.join(base_dir, f'{dataset}_{corruption}_p_+{corr_p}p_-{corr_n}')
@@ -73,23 +67,26 @@ def main(args):
         trainloader, testloader = Data.get_dataloader(weak_labels='weak')
 
         # Initialize the model
-        mlp = MLP(Data.num_features, [Data.num_features], Weak.c, dropout_p=0.3, bn=True, activation='relu')
-        lr = MLP(Data.num_features, [], Weak.c, dropout_p=0. bn=False, activation='id')
+        #mlp = MLP(Data.num_features, [Data.num_features], Weak.c, dropout_p=0.3, bn=True, activation='relu')
+        lr = MLP(Data.num_features, [], Weak.c, dropout_p=0, bn=False, activation='id')
         
         # Initialize the optimizer
-        optim = torch.optim.Adam(mlp.parameters(), lr=1e-3)
+        optim = torch.optim.Adam(lr.parameters(), lr=1e-3)
         
         # Train and evaluate the model
-        mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
-                                          loss_fn=loss_fn, corr_p=corr_p, num_epochs=100, 
+        #mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
+        #                                  loss_fn=loss_fn, corr_p=corr_p, num_epochs=100, 
+        #                                  sound=10, rep=i)
+        lr, results = train_and_evaluate(lr, trainloader, testloader, optimizer=optim, 
+                                          loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                           sound=10, rep=i)
         
         res_dir = f"Results/{dataset}_{corruption}"
-        os.makedirs(folder_path, exist_ok=True)
+        os.makedirs(res_dir, exist_ok=True)
         if corr_n is not None:
-            file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}.csv'
+            file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.csv'
         else:
-            file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}.csv'
+            file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.csv'
         file_path = os.path.join(res_dir, file_name)
         results.to_csv(file_path, index=False)
 
@@ -103,6 +100,10 @@ if __name__ == "__main__":
     parser.add_argument("--corr_p", type=float, default=0.5, help="Positive corruption probability.")
     parser.add_argument("--corr_n", type=float, default=None, help="Negative corruption probability.")
     parser.add_argument("--loss_type", type=str, default='Forward', help="Type of loss function to use.")
+    parser.add_argument("--epochs", type=int, default=30, help="Number of epochs")
     
     args = parser.parse_args()
     main(args)
+
+
+#python main.py --reps 10 --dataset segment --loss_type Forward --corruption complementary --corr_p 0.5
