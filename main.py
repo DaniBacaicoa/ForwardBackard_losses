@@ -44,6 +44,10 @@ def main(args):
             loss_fn = losses.FwdBwdLoss(Weak.Y, np.eye(Weak.c))
         elif loss_type == 'Forward':
             loss_fn = losses.FwdBwdLoss(np.eye(Weak.d), Weak.M)
+        elif loss_type == 'Forward_opt':
+            pest = Weak.generate_wl_priors()
+            B = Weak.M @ torch.inverse(Weak.M.T @ torch.inverse(torch.diag(pest)) @ Weak.M ) @ Weak.M.T @ torch.inverse(torch.diag(pest))
+            loss_fn = losses.FwdBwdLoss(B, Weak.M)
         elif loss_type == 'EM':
             loss_fn = losses.EMLoss(Weak.M)
         elif loss_type == 'LBL':
