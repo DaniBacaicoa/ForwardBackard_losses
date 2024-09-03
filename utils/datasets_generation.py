@@ -26,7 +26,11 @@ def generate_dataset(dataset, corruption, batch_size = 16, train_size = 0.8, cor
     Weak = Weakener(Data.num_classes)
     Weak.generate_M(model_class = corruption, corr_p = 0.1, corr_n = 0.1)
     train_X,train_y,test_X,test_y =  Data.get_data()
+    #print("Shape of self.M:", Weak.M.shape)
+    #print("Value of tl:", train_y.shape)
+    #print("Value of tl:", train_y)
     Weak.generate_weak(train_y) #z and w 
+    
 
     Dataset = [Data, Weak]
     if repetitions is None:

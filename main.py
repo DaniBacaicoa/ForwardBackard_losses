@@ -13,195 +13,96 @@ from Dataset_generation import generate_dataset,generate_iris_dataset
 import pickle
 import json
 
+import os
+import torch
+import numpy as np
+import pickle
+import argparse
+from src.dataset import Data_handling
+from src.weakener import Weakener
+from src.model import MLP
+from utils.datasets_generation import generate_dataset
+import utils.losses as losses
+from utils.train_test_loop import train_and_evaluate
 
-def main(dataset_base_path,)
-    if not os.path.exists(dataset_base_path):
-        raise FileNotFoundError(f"{folder_path} folder does not exist.")
-
-    # Archivos en la carpeta
-    files = os.listdir(folder_path)
-    pkl_files = [file for file in files if file.endswith('.pkl')]
+def main(args):
+    reps = args.reps
+    dataset_base_path = args.dataset_base_path
+    dataset = args.dataset
+    corruption = args.corruption
+    corr_p = args.corr_p
+    corr_n = args.corr_n
+    loss_type = args.loss_typeç
     
-    if not pkl_files:
-        raise FileNotFoundError(f"No .pkl files in folder {folder_path}.")
-    
-    for filename, e in enumerate(pkl_files):
-        file_path = os.path.join(dataset_base_path, filename)
-        with open(file_path, 'rb') as file:
-            Data, Weak = pickle.load(file)
-
-
-
-
-
-
-
-
-def main(reps, epochs, dropout_p, loss_type, pll_p, k=1, beta=1.2, lr= 5e-2, betas = (0.8, 0.99), V=None):
-
-    json_results_dict = {
-        'arguments': {
-            'reps': reps,
-            'epochs': epochs,
-            'dropout_p': dropout_p,
-            'loss_type': loss_type,
-            'pll_p': pll_p,
-            'k': k,
-            'beta': beta,
-            'lr': lr,
-            'betas': betas
-        },
-    }
-
-
-    save_dir = f'Experimental_results({pll_p})'
-    # Create save directory if it doesn't exist
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-        #This is for creating an mnist dataset inside the folder if it does'nt exist
-        for i in range(reps):
-            ##generate_dataset(save_dir, pll_p = pll_p, number=i) #This
-            generate_iris_dataset(save_dir, pll_p = pll_p, number=i)
-
-
-
-    overall_results = {}
-    overall_models = {}
-
     for i in range(reps):
-            #Reading the mnist dataset so all losses work with the same data
-        f = open(save_dir + f"/Dataset{i}.pkl","rb")
-        Data,Weak = pickle.load(f)
-        f.close()
+        base_dir = dataset_base_path
+        if corr_n is not None:
+            folder_path = os.path.join(base_dir, f'{dataset}_{corruption}_p_+{corr_p}p_-{corr_n}')
+        else:
+            folder_path = os.path.join(base_dir, f'{dataset}_{corruption}_p{corr_p}')
+        
+        # Load the dataset
+        with open(folder_path + f'/Dataset_{i}.pkl', 'rb') as f:
+            Data, Weak = pickle.load(f)
 
-        # Choose loss function 
-        if loss_type in ['Back','Back_conv','Back_opt','Back_opt_conv']:
-            loss_fn = losses.CELoss()
-            if loss_type == 'Back':
-                Weak.virtual_labels(p=None, optimize = False, convex = False)
-            elif loss_type == 'Back_opt':
-                Weak.virtual_labels(p=None, optimize = True, convex = False)
-            elif loss_type == 'Back_conv':
-                Weak.virtual_labels(p=None, optimize = False, convex = True)
-            elif loss_type == 'Back_opt_conv':
-                Weak.virtual_labels(p=None, optimize = True, convex = True)
-            Data.include_virtual(Weak.v)
-            trainloader,testloader = Data.get_dataloader(weak_labels='virtual')
+        # Select the appropriate loss function
+        if loss_type == 'Backward':
+            loss_fn = losses.FwdBwdLoss(Weak.Y, np.eye(Weak.c))
+        elif loss_type == 'Forward':
+            loss_fn = losses.FwdBwdLoss(np.eye(Weak.d), Weak.M)
         elif loss_type == 'EM':
             loss_fn = losses.EMLoss(Weak.M)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
+        elif loss_type == 'LBL':
+            loss_fn = losses.LBLoss()
+        elif loss_type == 'Backward_opt':
+            loss_fn = losses.FwdBwdLoss(Weak.Y_opt, np.eye(Weak.c))
+        elif loss_type == 'Backward_conv':
+            loss_fn = losses.FwdBwdLoss(Weak.Y_conv, np.eye(Weak.c))
+        elif loss_type == 'Backward_opt_conv':
+            loss_fn = losses.FwdBwdLoss(Weak.Y_opt_conv, np.eye(Weak.c))
         elif loss_type == 'OSL':
             loss_fn = losses.OSLCELoss()
+
+        # Include weak labels based on loss type
+        if loss_type == 'OSL':
             Data.include_weak(Weak.w)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'LBL':
-            loss_fn = losses.LBLoss_gpt4o(k, beta)
-            Weak.virtual_labels(p=None, optimize = True, convex = True)
-            Data.include_virtual(Weak.v)
-            trainloader,testloader = Data.get_dataloader(weak_labels='virtual')
-        elif loss_type == 'Forward':
-            loss_fn = losses.ForwardLoss_gpt4o(Weak.M)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'ForwardBackward_Y':
-            #Weak.V_matrix(Data.num_classes)
-            Y = np.linalg.pinv(Weak.M)
-            loss_fn = losses.FBLoss_gpt4o(Weak.M, Y)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'ForwardBackward_I':
-            #Weak.V_matrix(Data.num_classes)
-            #Y = np.linalg.pinv(Weak.M)
-            loss_fn = losses.FBLoss_gpt4o(Weak.M, np.identity(Weak.d))
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'ForwardBackward_VM':
-            Weak.V_matrix(Data.num_classes,method = 'M')
-
-            loss_fn = losses.FBLoss_gpt4o(Weak.M, Weak.V)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'ForwardBackward_VY':
-            Weak.virtual_labels(p=None, optimize = True, convex = True)
-            Weak.V_matrix(Data.num_classes,method = 'Y')
-
-            loss_fn = losses.FBLoss_gpt4o(Weak.M, Weak.V)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'ForwardBackward_VsI':
-            Weak.V_matrix(Data.num_classes,method = 'sI')
-
-            loss_fn = losses.FBLoss_gpt4o(Weak.M, Weak.V)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'FBLoss_opt':
-            pest = Weak.generate_wl_priors()
-            loss_fn = losses.FBLoss_opt(Weak.M,pest)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'ForwardBackward_VmI':
-            Weak.V_matrix(Data.num_classes,method = 'mI')
-
-            loss_fn = losses.FBLoss_gpt4o(Weak.M, Weak.V)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
-        elif loss_type == 'ForwardBackward_VbI':
-            Weak.V_matrix(Data.num_classes,method = 'bI')
-
-            loss_fn = losses.FBLoss_gpt4o(Weak.M, Weak.V)
-            Data.include_weak(Weak.z)
-            trainloader,testloader = Data.get_dataloader(weak_labels='weak')
         else:
-            raise ValueError("Invalid loss type. Check the spelling")
+            Data.include_weak(Weak.z)
 
+        # Prepare data loaders
+        trainloader, testloader = Data.get_dataloader(weak_labels='weak')
 
-        #np_results = {}
-        ##mlp = MLP(Data.num_features, [Data.num_features], Data.num_classes, dropout_p = dropout_p, bn = True, activation = 'tanh')
-        logis = MLP(Data.num_features,[], Data.num_classes, dropout_p=0.0, bn=False, activation='identity')
-        ##logis = MLP(Data.num_features,[Data.num_features], Data.num_classes, dropout_p=0.0, bn=False, activation='relu') #segment
+        # Initialize the model
+        mlp = MLP(Data.num_features, [Data.num_features], Weak.c, dropout_p=0.3, bn=True, activation='relu')
+        lr = MLP(Data.num_features, [], Weak.c, dropout_p=0. bn=False, activation='id')
         
-        ##optim = torch.optim.Adam(mlp.parameters(), lr = lr, betas = betas)
-        optim = torch.optim.Adam(logis.parameters(), lr = lr, betas = betas)
-        ##optim = torch.optim.SGD(logis.parameters(), lr = lr)
-        ##mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, loss_fn=loss_fn, num_epochs=epochs, sound=1)
-        logis, results = train_and_evaluate(logis, trainloader, testloader, optimizer=optim, loss_fn=loss_fn, num_epochs=epochs, sound=1)
-        print(f'Fin de la repeticion {i}\n')
-        #for key in results:
-        #    results[key] = results[key].numpy()
-        #print('Estos son los nuevos:',results)
-        overall_results[i] = results
-        overall_models[i] = logis
-        ##overall_models[i] = mlp
-        #save_path = os.path.join(save_dir, f'{loss_type}_results_{i}.pkl')
-        #with open(save_path, "wb") as f:
-        #    pickle.dump(overall_results[i], f)
+        # Initialize the optimizer
+        optim = torch.optim.Adam(mlp.parameters(), lr=1e-3)
+        
+        # Train and evaluate the model
+        mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
+                                          loss_fn=loss_fn, corr_p=corr_p, num_epochs=100, 
+                                          sound=10, rep=i)
+        
+        res_dir = f"Results/{dataset}_{corruption}"
+        os.makedirs(folder_path, exist_ok=True)
+        if corr_n is not None:
+            file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}.csv'
+        else:
+            file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}.csv'
+        file_path = os.path.join(res_dir, file_name)
+        results.to_csv(file_path, index=False)
 
-    # Save results
-    results_dict = {'overall_results': overall_results, 'overall_models': overall_models}
-    #json_results_dict['results'] = overall_results
-    save_path = os.path.join(save_dir, f'{loss_type}.pkl')
-    #json_save_path = os.path.join(save_dir, f'json_{loss_type}.json')
-    with open(save_path, "wb") as f:
-        pickle.dump(results_dict, f)
-    #with open(json_save_path, "w") as f:
-    #    json.dump(json_results_dict, f)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Train and evaluate MLP model')
-    parser.add_argument('--reps', type = int, default = 5, help = 'Number of repetitions for statistical purposes')
-    parser.add_argument('-e','--epochs', type = int, default = 15, help = 'Number of epochs')
-    parser.add_argument('-dp', '--dropout', type = float, default = 0.5, help = 'Dropout probability')
-    parser.add_argument('-l','--loss', type = str, default = 'Back', 
-                        choices=['Back','Back_conv','Back_opt','Back_opt_conv','EM','OSL','LBL','Forward','ForwardBackward_I','ForwardBackward_Y',
-                                 'ForwardBackward_VM','ForwardBackward_VY','ForwardBackward_VsI','ForwardBackward_VmI','ForwardBackward_VbI','FBLoss_opt'],
-                        help='Type of loss reconstruction')
-    #parser.add_argument('-d', '--save_dir', type = str, default = 'Experimental_results', help = 'Directory to save results')
-    parser.add_argument('--pll', type = float, help = 'Probability of corrupted samples in the dataset')
-    parser.add_argument('--k', type = float, default = 1, help = 'Hyperparameter for LBL (lower bounded loss)')
-    parser.add_argument('--beta', type = float, default = 1.2, help = 'Hyperparameter for LBL (lower bounded loss)')
-    parser.add_argument('--lr', type = float, default = 1e-3, help = 'Learning rate for the optimization algorithm')
-    parser.add_argument('--betas', type = tuple, default = (0.9, 0.999), help = 'betas parameter for Adam optimizer')
+    parser = argparse.ArgumentParser(description="Script for dataset handling, model training and evaluation.")
+    parser.add_argument("--reps", type=int, default=10, help="Number of repetitions.")
+    parser.add_argument("--dataset_base_path", type=str, default='Datasets/weak_datasets', help="Base path for datasets.")
+    parser.add_argument("--dataset", type=str, default='image', help="Dataset name.")
+    parser.add_argument("--corruption", type=str, default='pll', help="Corruption type.")
+    parser.add_argument("--corr_p", type=float, default=0.5, help="Positive corruption probability.")
+    parser.add_argument("--corr_n", type=float, default=None, help="Negative corruption probability.")
+    parser.add_argument("--loss_type", type=str, default='Forward', help="Type of loss function to use.")
+    
     args = parser.parse_args()
-
-    main(args.reps, args.epochs, args.dropout, args.loss, args.pll, args.k, args.beta, args.lr, args.betas)
+    main(args)

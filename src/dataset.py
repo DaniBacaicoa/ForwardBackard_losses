@@ -166,7 +166,7 @@ class Data_handling(Dataset):
             # for the full with a random partition transforms mut be changed
             
             self.num_classes = len(np.unique(self.train_dataset.targets))
-            self.num_features = self.train_dataset.data.shape[1]
+            
 
             self.train_num_samples = self.train_dataset.data.shape[0]
             self.test_num_samples = self.test_dataset.data.shape[0]
@@ -174,8 +174,10 @@ class Data_handling(Dataset):
             self.train_dataset.data = self.train_dataset.data.to(torch.float32).view((self.train_num_samples,-1))
             self.test_dataset.data = self.test_dataset.data.to(torch.float32).view((self.test_num_samples,-1))
             
-            self.train_dataset.targets = self.test_dataset.data.to(torch.long)
-            self.train_dataset.targets = self.test_dataset.data.to(torch.long)
+            self.num_features = self.train_dataset.data.shape[1]
+            
+            self.train_dataset.targets = self.train_dataset.targets.to(torch.long)
+            self.test_dataset.targets = self.test_dataset.targets.to(torch.long)
 
         else: 
             if self.dataset in openml_ids:
@@ -265,10 +267,14 @@ class Data_handling(Dataset):
             self.train_dataset.targets = self.train_dataset.tensors[1]
             self.test_dataset.data = self.test_dataset.tensors[0]
             self.test_dataset.targets = self.test_dataset.tensors[1]
-
-        #One hot encoding of the labels
+            
         self.train_dataset.targets = torch.eye(self.num_classes)[self.train_dataset.targets]
         self.test_dataset.targets = torch.eye(self.num_classes)[self.test_dataset.targets]
+
+        '''#One hot encoding of the labels
+        print(self.train_dataset.targets)
+        self.train_dataset.targets = torch.eye(self.num_classes)[self.train_dataset.targets]
+        self.test_dataset.targets = torch.eye(self.num_classes)[self.test_dataset.targets]'''
 
     def __getitem__(self, index):
         if self.weak_labels is None:

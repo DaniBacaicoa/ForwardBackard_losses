@@ -15,7 +15,7 @@ class MLP(nn.Module):
         ])
         for layer in self.layers:
             #nn.init.xavier_uniform_(layer.weight)
-            nn.init.constant(layer.weight, 0.1)
+            nn.init.constant_(layer.weight, 0.1)
 
         # Create a list of batch normalization layers using ModuleList
         self.batch_norms = nn.ModuleList([
