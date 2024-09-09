@@ -154,7 +154,7 @@ if __name__ == "__main__":
     parser.add_argument("--corr_n", type=float, default=None, help="Negative corruption probability.")
     parser.add_argument("--loss_type", type=str, default='Forward', help="Type of loss function to use.")
     parser.add_argument("--epochs", type=int, default=30, help="Number of epochs")
-    parser.add_model("--model", type=str, default='lr', help="Whether to use an MLP or a LR" )
+    parser.add_argument("--model", type=str, default='lr', help="Whether to use an MLP or a LR" )
     
     args = parser.parse_args()
     main(args)
