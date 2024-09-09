@@ -22,37 +22,6 @@ import pandas as pd
 
 
 class Data_handling(Dataset):
-    '''
-    The dataloader returns a pytorch dataset
-    inputs:
-        dataset: [str/int] refers to the selected dataset
-            Synthetic datasets
-            - 'hypercube'
-            - 'blobs'
-            - 'blobs2'
-            Sklearn's datasets
-            - 'iris'
-            - 'digits'
-            - 'covtype'
-            Openml edited datasets
-            - 'glass_2' (glass dataset but with 3 classes)
-            Openml datasets
-            -   'iris': 61, 'pendigits': 32, 'glass': 41, 'segment': 36,
-                'vehicle': 54, 'vowel': 307, 'wine': 187, 'abalone': 1557,
-                'balance-scale': 11, 'car': 21, 'ecoli': 39, 'satimage': 182,
-                'collins': 478, 'cardiotocography': 1466, 'JapaneseVowels': 375,
-                'autoUniv-au6-1000': 1555, 'autoUniv-au6-750': 1549,
-                'analcatdata_dmft': 469, 'autoUniv-au7-1100': 1552,
-                'GesturePhaseSegmentationProcessed': 4538,
-                'autoUniv-au7-500': 1554, 'mfeat-zernike': 22, 'zoo': 62,
-                'page-blocks': 30, 'yeast': 181, 'flags': 285,
-                'visualizing_livestock': 685, 'diggle_table_a2': 694,
-                'prnn_fglass': 952, 'confidence': 468, 'fl2000': 477,
-                'blood-transfusion': 1464, ' banknote-authentication': 1462
-            UCI dtasets
-            - TBD
-    '''
-
     def __init__(self, dataset, train_size, test_size = None, valid_size = None, batch_size = 64, shuffling = False, splitting_seed = None):
         self.dataset = dataset
         self.dataset_source = None
