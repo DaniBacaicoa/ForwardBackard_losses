@@ -24,7 +24,7 @@ def generate_dataset(dataset, corruption, batch_size = 16, train_size = 0.8, cor
 
     Data = Data_handling(dataset=dataset, batch_size=32, train_size = train_size)
     Weak = Weakener(Data.num_classes)
-    Weak.generate_M(model_class = corruption, corr_p = 0.1, corr_n = 0.1)
+    Weak.generate_M(model_class = corruption, corr_p = corr_p, corr_n = corr_n)
     train_X,train_y,test_X,test_y =  Data.get_data()
     #print("Shape of self.M:", Weak.M.shape)
     #print("Value of tl:", train_y.shape)
@@ -39,7 +39,6 @@ def generate_dataset(dataset, corruption, batch_size = 16, train_size = 0.8, cor
         f = open(folder_path + f"/Dataset_{repetitions}.pkl", "wb")
     pickle.dump(Dataset,f)
     f.close()
-    
 
 
 
