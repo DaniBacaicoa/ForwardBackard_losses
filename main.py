@@ -23,6 +23,7 @@ def main(args):
     loss_type = args.loss_type
     epochs = args.epochs
     model = args.model
+    learning_rate = args.lr
 
 
 
@@ -77,7 +78,7 @@ def main(args):
 
         if model == 'lr':
             lr = MLP(Data.num_features, [], Weak.c, dropout_p=0, bn=False, activation='id')
-            optim = torch.optim.Adam(lr.parameters(), lr=1e-3)
+            optim = torch.optim.Adam(lr.parameters(), lr=learning_rate)
             lr, results = train_and_evaluate(lr, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                             sound=10, rep=i, loss_type=loss_type)
@@ -107,7 +108,7 @@ def main(args):
                 results.to_csv(file_path, index=False)
         else:
             mlp = MLP(Data.num_features, [500], Weak.c, dropout_p=0.0, bn=False, activation='relu')
-            optim = torch.optim.Adam(mlp.parameters(), lr=1e-3)
+            optim = torch.optim.Adam(mlp.parameters(), lr=learning_rate)
             mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                             sound=10, rep=i, loss_type=loss_type)
@@ -155,6 +156,7 @@ if __name__ == "__main__":
     parser.add_argument("--loss_type", type=str, default='Forward', help="Type of loss function to use.")
     parser.add_argument("--epochs", type=int, default=30, help="Number of epochs")
     parser.add_argument("--model", type=str, default='lr', help="Whether to use an MLP or a LR" )
+    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     
     args = parser.parse_args()
     main(args)
@@ -194,13 +196,13 @@ if __name__ == "__main__":
 
 # MNIST
 ## Noisy
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward --corr_p 0.2 --epochs 50 --lr 1e-2
 
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward --corr_p 0.2 --epochs 50 --lr 1e-2
 
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward_conv --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward_conv --corr_p 0.2 --epochs 50 --lr 1e-2
 
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward_opt --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward_opt --corr_p 0.2 --epochs 50 --lr 1e-2
 
 
 # MNIST
@@ -241,7 +243,7 @@ if __name__ == "__main__":
 # python main.py --reps 10 --dataset gmm --model lr --corruption Complementary --loss_type Forward_opt --corr_p 0.2 --epochs 50
 
 
-# GMM
+# GMM ok 
 ## pll
 # python main.py --reps 10 --dataset gmm --model lr --corruption pll --loss_type Forward --corr_p 0.2 --epochs 50
 # python main.py --reps 10 --dataset gmm --model lr --corruption pll --loss_type Forward --corr_p 0.5 --epochs 50
