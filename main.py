@@ -34,7 +34,7 @@ def main(args):
         
         base_dir = dataset_base_path
         if corr_n is not None:
-            folder_path = os.path.join(base_dir, f'{dataset}_{corruption}_p{corr_p}')
+            folder_path = os.path.join(base_dir, f'{dataset}_{corruption}_p_+{corr_p}p_-{corr_n}')
         else:
             folder_path = os.path.join(base_dir, f'{dataset}_{corruption}_p{corr_p}')
         
