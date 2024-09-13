@@ -106,7 +106,7 @@ def main(args):
                 file_path = os.path.join(res_dir, file_name)
                 results.to_csv(file_path, index=False)
         elif model == 'mlp':
-            mlp = MLP(Data.num_features, [Data.num_features], Weak.c, dropout_p=0.0, bn=True, activation='sigmoid')
+            mlp = MLP(Data.num_features, [Data.num_features], Weak.c, dropout_p=0.5, bn=True, activation='tanh')
             optim = torch.optim.Adam(mlp.parameters(), lr=learning_rate)
             mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
@@ -199,10 +199,10 @@ if __name__ == "__main__":
 
 
 # MNIST
-## Noisy
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward --corr_p 0.2 --epochs 50
+## Complementary
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward --corr_p 0.2 --epochs 50 --lr 1e-2
 
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward --corr_p 0.2 --epochs 50 --lr 1e-2
 
 # python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward_conv --corr_p 0.2 --epochs 50
 
@@ -235,6 +235,16 @@ if __name__ == "__main__":
 # python main.py --reps 10 --dataset mnist --model mlp --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 50
 # python main.py --reps 10 --dataset mnist --model mlp --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 50
 
+
+# GMM
+## Noisy
+# python main.py --reps 10 --dataset gmm --model lr --corruption unif_noise --loss_type Forward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset gmm --model lr --corruption unif_noise --loss_type Forward --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset gmm --model lr --corruption unif_noise --loss_type Forward --corr_p 0.8 --epochs 50
+
+# python main.py --reps 10 --dataset gmm --model lr --corruption unif_noise --loss_type Backward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset gmm --model lr --corruption unif_noise --loss_type Backward --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset gmm --model lr --corruption unif_noise --loss_type Backward --corr_p 0.8 --epochs 50
 
 # GMM  OK
 ## Noisy

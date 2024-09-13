@@ -9,29 +9,32 @@ import numpy as np
 import random
 
 
-
-# Set random seeds
-seed = 7  # You can choose any integer seed
+seed = 42  # You can choose any integer seed
 torch.manual_seed(seed)
 np.random.seed(seed)
 random.seed(seed)
 
-# If using CUDA, set the seed for GPU as well
+'''# If using CUDA, set the seed for GPU as well
 if torch.cuda.is_available():
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed) 
 
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
+'''
 
 def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, corr_p, rep = None, sound=10, loss_type = None):
+    seed = 42  # You can choose any integer seed
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
     initial_lr = optimizer.param_groups[0]['lr']
 
     # Initialize a list to store epoch data
     results = []
 
     #Only when debbuging
-    torch.autograd.set_detect_anomaly(True)
+    #torch.autograd.set_detect_anomaly(True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)

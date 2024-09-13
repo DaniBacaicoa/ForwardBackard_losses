@@ -107,6 +107,10 @@ class Weakener(object):
             #self.M, self.Z, self.labels = self.label_matrix(M)
             #self.M = M
 
+        elif model_class == 'unif_noise':
+            M = np.eye(self.c)*(1-self.corr_p-self.corr_p/(self.c - 1)) + np.ones(self.c)*self.corr_p/(self.c - 1)
+            M /= np.sum(M, 0)
+
         elif model_class == 'complementary':
             '''
             This gives one of de non correct label 
