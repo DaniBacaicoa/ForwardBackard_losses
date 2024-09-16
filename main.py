@@ -200,9 +200,9 @@ if __name__ == "__main__":
 
 # MNIST
 ## Complementary
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward --corr_p 0.2 --epochs 50 --lr 1e-2
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Forward --corr_p 0.2 --epochs 50 --lr 1e-3
 
-# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward --corr_p 0.2 --epochs 50 --lr 1e-2
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward --corr_p 0.2 --epochs 50 --lr 1e-3
 
 # python main.py --reps 10 --dataset mnist --model mlp --corruption Complementary --loss_type Backward_conv --corr_p 0.2 --epochs 50
 
