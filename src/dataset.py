@@ -147,7 +147,40 @@ class Data_handling(Dataset):
             
             self.train_dataset.targets = self.train_dataset.targets.to(torch.long)
             self.test_dataset.targets = self.test_dataset.targets.to(torch.long)
+        elif self.dataset in ['Cifar10', 'Cifar100']:
+            self.dataset = self.dataset.upper()
+            self.transform = transforms.Compose([
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                ])
+            self.train_dataset = datasets.__dict__[self.dataset](
+                root='Datasets/raw_datasets', 
+                train=True, 
+                transform=self.transform, 
+                download=True)
+            self.test_dataset = datasets.__dict__[self.dataset](
+                root='Datasets/raw_datasets', 
+                train=False, 
+                transform=self.transform, 
+                download=True)
+            self.num_classes = len(np.unique(self.train_dataset.targets))
+            
 
+            self.train_num_samples = self.train_dataset.data.shape[0]
+            self.test_num_samples = self.test_dataset.data.shape[0]
+            
+            self.train_dataset.data = self.train_dataset.data.to(torch.float32).view((self.train_num_samples,-1))
+            self.test_dataset.data = self.test_dataset.data.to(torch.float32).view((self.test_num_samples,-1))
+            
+            self.num_features = self.train_dataset.data.shape[1]
+            
+            self.train_dataset.targets = self.train_dataset.targets.to(torch.long)
+            self.test_dataset.targets = self.test_dataset.targets.to(torch.long)
+        elif self.dataset in ['Clothing1M']:
+            #TBD
+            pass
         else: 
             if self.dataset in openml_ids:
                 data = openml.datasets.get_dataset(openml_ids[self.dataset])
