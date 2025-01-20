@@ -171,13 +171,13 @@ class Data_handling(Dataset):
             self.train_num_samples = self.train_dataset.data.shape[0]
             self.test_num_samples = self.test_dataset.data.shape[0]
             
-            self.train_dataset.data = self.train_dataset.data.to(torch.float32).view((self.train_num_samples,-1))
-            self.test_dataset.data = self.test_dataset.data.to(torch.float32).view((self.test_num_samples,-1))
+            self.train_dataset.data = torch.tensor(self.train_dataset.data, dtype=torch.float32)
+            self.test_dataset.data = torch.tensor(self.test_dataset.data, dtype=torch.float32)
             
-            self.num_features = self.train_dataset.data.shape[1]
+            self.num_features = None
             
-            self.train_dataset.targets = self.train_dataset.targets.to(torch.long)
-            self.test_dataset.targets = self.test_dataset.targets.to(torch.long)
+            self.train_dataset.targets = torch.tensor(self.train_dataset.targets, dtype=torch.long)
+            self.test_dataset.targets = torch.tensor(self.test_dataset.targets, dtype=torch.long)
         elif self.dataset in ['Clothing1M']:
             #TBD
             pass
