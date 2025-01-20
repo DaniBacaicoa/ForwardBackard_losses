@@ -166,6 +166,8 @@ class Data_handling(Dataset):
                 transform=self.transform, 
                 download=True)
             self.num_classes = len(np.unique(self.train_dataset.targets))
+            img, label = train_dataset[0]  # single sample
+            print(img.shape) 
             
 
             self.train_num_samples = self.train_dataset.data.shape[0]
