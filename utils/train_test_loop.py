@@ -7,6 +7,7 @@ import os
 import pickle
 import numpy as np
 import random
+import time
 
 
 seed = 42  # You can choose any integer seed
@@ -40,6 +41,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
     model.to(device)
 
     for epoch in range(num_epochs):
+        start_time = time.time()
         model.train()
 
         running_loss = 0.0
@@ -96,7 +98,8 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
 
         # Get the actual learning rate from the optimizer
         actual_lr = optimizer.param_groups[0]['lr']
-
+        
+        epoch_time = time.time() - start_time
         # Store results for this epoch
         epoch_data = {
             'epoch': epoch + 1,
@@ -111,6 +114,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
             'initial_lr': initial_lr,
             'actual_lr': actual_lr,
             'corr_p': corr_p,
+            'epoch_time': epoch_time,
         }
         results.append(epoch_data)
 
@@ -118,7 +122,7 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
             print(f'Epoch {epoch+1}/{num_epochs}: Train Loss: {train_loss:.4f}, '
                   f'Train Acc: {train_acc:.4f}, Test Acc: {test_acc:.4f}, '
                   f'Train Detached Loss: {detached_train_loss:.4f}, Test Detached Loss: {detached_test_loss:.4f}, '
-                  f'Learning Rate: {actual_lr:.6f}')
+                  f'Learning Rate: {actual_lr:.6f}, Epoch Time: {epoch_time:.2f} seconds')
 
     # Convert results to DataFrame at the end
     results_df = pd.DataFrame(results)
