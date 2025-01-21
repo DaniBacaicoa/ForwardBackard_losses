@@ -166,17 +166,18 @@ class Data_handling(Dataset):
                 transform=self.transform, 
                 download=True)
             self.num_classes = len(np.unique(self.train_dataset.targets))
-            img, label = train_dataset[0]  # single sample
-            print(img.shape) 
+            
             
 
             self.train_num_samples = self.train_dataset.data.shape[0]
             self.test_num_samples = self.test_dataset.data.shape[0]
             
             self.train_dataset.data = torch.tensor(self.train_dataset.data, dtype=torch.float32)
+            self.train_dataset.data = self.train_dataset.data.permute(0, 3, 1, 2) 
             self.test_dataset.data = torch.tensor(self.test_dataset.data, dtype=torch.float32)
-            
+            self.test_dataset.data = self.test_dataset.data.permute(0, 3, 1, 2) 
             self.num_features = None
+            
             
             self.train_dataset.targets = torch.tensor(self.train_dataset.targets, dtype=torch.long)
             self.test_dataset.targets = torch.tensor(self.test_dataset.targets, dtype=torch.long)
