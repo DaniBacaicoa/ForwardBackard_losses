@@ -210,10 +210,27 @@ class Data_handling(Dataset):
             coarse_label_names = meta['coarse_label_names']
             #This is the mapping from fine to coarse labels (it's done manually)
             fine_to_coarse_mapping = [
-                4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15,
-                0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 8, 6, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9,
-                11, 5, 5, 8, 6, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 8, 6, 10, 7, 6, 13,
-                15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 8, 6, 10, 7, 6]
+                0, 0, 0, 0, 0,  # aquatic mammals
+                1, 1, 1, 1, 1,  # fish
+                2, 2, 2, 2, 2,  # flowers
+                3, 3, 3, 3, 3,  # food containers
+                4, 4, 4, 4, 4,  # fruit and vegetables
+                5, 5, 5, 5, 5,  # household electrical devices
+                6, 6, 6, 6, 6,  # household furniture
+                7, 7, 7, 7, 7,  # insects
+                8, 8, 8, 8, 8,  # large carnivores
+                9, 9, 9, 9, 9,  # large man-made outdoor things
+                10, 10, 10, 10, 10,  # large natural outdoor scenes
+                11, 11, 11, 11, 11,  # large omnivores and herbivores
+                12, 12, 12, 12, 12,  # medium-sized mammals
+                13, 13, 13, 13, 13,  # non-insect invertebrates
+                14, 14, 14, 14, 14,  # people
+                15, 15, 15, 15, 15,  # reptiles
+                16, 16, 16, 16, 16,  # small mammals
+                17, 17, 17, 17, 17,  # trees
+                18, 18, 18, 18, 18,  # vehicles 1
+                19, 19, 19, 19, 19   # vehicles 2
+            ]
             class_to_superclass_map = {
                 fine_label_names[i]: coarse_label_names[fine_to_coarse_mapping[i]]
                 for i in range(len(fine_label_names))
