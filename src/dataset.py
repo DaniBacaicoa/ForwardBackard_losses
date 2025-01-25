@@ -202,7 +202,7 @@ class Data_handling(Dataset):
                 download=True)
             
             # This changes the labels from fine to coarse
-            meta_file_path = 'C:/Users/danibacaicoa/vscode_projects/F-B last/ForwardBackard_losses/Datasets/raw_datasets/cifar-100-python/meta'
+            meta_file_path = 'Datasets/raw_datasets/cifar-100-python/meta'
             with open(meta_file_path, 'rb') as f:
                 meta = pickle.load(f, encoding='latin1')
             fine_label_names = meta['fine_label_names']
