@@ -19,6 +19,7 @@ from torch.utils.data import Dataset, DataLoader, TensorDataset
 from torchvision import datasets, transforms
 
 import pandas as pd
+import pickle
 
 
 class Data_handling(Dataset):
