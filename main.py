@@ -314,49 +314,49 @@ if __name__ == "__main__":
 
 # CIFAR10
 ## pll
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_opt --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_opt --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_opt --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_opt --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_opt --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_opt --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_opt_conv --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_opt_conv --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_opt_conv --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_opt_conv --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_opt_conv --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_opt_conv --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_conv --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_conv --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Backward_conv --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_conv --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_conv --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Backward_conv --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 50
 
 
 # CIFAR10
 ## Noisy
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward_conv --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward_conv --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward_conv --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward_conv --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward_conv --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Backward_conv --corr_p 0.8 --epochs 50
 
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward_opt --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward_opt --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward_opt --corr_p 0.8 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward_opt --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward_opt --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset Cifar10 --model resnet18 --corruption Noisy_Patrini_CIFAR10 --loss_type Forward_opt --corr_p 0.8 --epochs 50

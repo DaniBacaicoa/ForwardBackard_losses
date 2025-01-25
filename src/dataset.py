@@ -147,7 +147,7 @@ class Data_handling(Dataset):
             
             self.train_dataset.targets = self.train_dataset.targets.to(torch.long)
             self.test_dataset.targets = self.test_dataset.targets.to(torch.long)
-        elif self.dataset in ['Cifar10', 'Cifar100']:
+        elif self.dataset in ['Cifar10']:
             self.dataset = self.dataset.upper()
             self.transform = transforms.Compose([
                 transforms.RandomCrop(32, padding=4),
@@ -181,6 +181,62 @@ class Data_handling(Dataset):
             
             self.train_dataset.targets = torch.tensor(self.train_dataset.targets, dtype=torch.long)
             self.test_dataset.targets = torch.tensor(self.test_dataset.targets, dtype=torch.long)
+
+        elif self.dataset in ['Cifar100']:
+            self.dataset = self.dataset.upper()
+            self.transform = transforms.Compose([
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                ])
+            self.train_dataset = datasets.__dict__[self.dataset](
+                root='Datasets/raw_datasets', 
+                train=True, 
+                transform=self.transform, 
+                download=True)
+            self.test_dataset = datasets.__dict__[self.dataset](
+                root='Datasets/raw_datasets', 
+                train=False, 
+                transform=self.transform, 
+                download=True)
+            
+            # This changes the labels from fine to coarse
+            meta_file_path = 'C:/Users/danibacaicoa/vscode_projects/F-B last/ForwardBackard_losses/Datasets/raw_datasets/cifar-100-python/meta'
+            with open(meta_file_path, 'rb') as f:
+                meta = pickle.load(f, encoding='latin1')
+            fine_label_names = meta['fine_label_names']
+            coarse_label_names = meta['coarse_label_names']
+            #This is the mapping from fine to coarse labels (it's done manually)
+            fine_to_coarse_mapping = [
+                4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15,
+                0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 8, 6, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9,
+                11, 5, 5, 8, 6, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 8, 6, 10, 7, 6, 13,
+                15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 8, 6, 10, 7, 6]
+            class_to_superclass_map = {
+                fine_label_names[i]: coarse_label_names[fine_to_coarse_mapping[i]]
+                for i in range(len(fine_label_names))
+            }
+            train_fine_labels_one_hot = self.train_dataset.targets
+            train_fine_label_indices = torch.argmax(train_fine_labels_one_hot, dim=1)
+            train_coarse_label_indices = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in train_fine_label_indices])
+            self.train_dataset.targets = torch.nn.functional.one_hot(train_coarse_label_indices, num_classes=20)
+            test_fine_labels_one_hot = self.test_dataset.targets
+            test_fine_label_indices = torch.argmax(test_fine_labels_one_hot, dim=1)
+            test_coarse_label_indices = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in test_fine_label_indices])
+            self.test_dataset.targets = torch.nn.functional.one_hot(test_coarse_label_indices, num_classes=20)
+            # Here finishes the change of labels from fine to coarse. You can use the fine labels if you want by commenting the previous lines.
+
+            self.num_classes = len(np.unique(self.train_dataset.targets))
+            
+            self.train_num_samples = self.train_dataset.data.shape[0]
+            self.test_num_samples = self.test_dataset.data.shape[0]
+            
+            self.train_dataset.data = torch.tensor(self.train_dataset.data, dtype=torch.float32)
+            self.train_dataset.data = self.train_dataset.data.permute(0, 3, 1, 2) 
+            self.test_dataset.data = torch.tensor(self.test_dataset.data, dtype=torch.float32)
+            self.test_dataset.data = self.test_dataset.data.permute(0, 3, 1, 2) 
+            self.num_features = None
         elif self.dataset in ['Clothing1M']:
             #TBD
             pass
