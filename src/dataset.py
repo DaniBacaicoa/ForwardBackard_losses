@@ -218,17 +218,18 @@ class Data_handling(Dataset):
                 fine_label_names[i]: coarse_label_names[fine_to_coarse_mapping[i]]
                 for i in range(len(fine_label_names))
             }
-            train_fine_labels_one_hot = self.train_dataset.targets
-            breakpoint()
-            train_fine_labels_one_hot = torch.tensor(train_fine_labels_one_hot)
-            train_fine_label_indices = torch.argmax(train_fine_labels_one_hot, dim=1)
-            train_coarse_label_indices = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in train_fine_label_indices])
-            self.train_dataset.targets = torch.nn.functional.one_hot(train_coarse_label_indices, num_classes=20)
-            test_fine_labels_one_hot = self.test_dataset.targets
-            test_fine_labels_one_hot = torch.tensor(test_fine_labels_one_hot)
-            test_fine_label_indices = torch.argmax(test_fine_labels_one_hot, dim=1)
-            test_coarse_label_indices = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in test_fine_label_indices])
-            self.test_dataset.targets = torch.nn.functional.one_hot(test_coarse_label_indices, num_classes=20)
+            #train_fine_labels_one_hot = self.train_dataset.targets
+            #breakpoint()
+            #train_fine_labels_one_hot = torch.tensor(train_fine_labels_one_hot)
+            #train_fine_label_indices = torch.argmax(train_fine_labels_one_hot, dim=1)
+            self.train_dataset.targets = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in self.train_dataset.targets])
+            #self.train_dataset.targets = torch.nn.functional.one_hot(train_coarse_label_indices, num_classes=20)
+            #test_fine_labels_one_hot = self.test_dataset.targets
+            #test_fine_labels_one_hot = torch.tensor(test_fine_labels_one_hot)
+            #test_fine_label_indices = torch.argmax(test_fine_labels_one_hot, dim=1)
+            #test_coarse_label_indices = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in test_fine_label_indices])
+            #self.test_dataset.targets = torch.nn.functional.one_hot(test_coarse_label_indices, num_classes=20)
+            self.test_dataset.targets = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in self.test_dataset.targets])
             # Here finishes the change of labels from fine to coarse. You can use the fine labels if you want by commenting the previous lines.
 
             self.num_classes = len(np.unique(self.train_dataset.targets))
