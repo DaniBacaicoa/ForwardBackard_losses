@@ -219,6 +219,7 @@ class Data_handling(Dataset):
                 for i in range(len(fine_label_names))
             }
             train_fine_labels_one_hot = self.train_dataset.targets
+            breakpoint()
             train_fine_labels_one_hot = torch.tensor(train_fine_labels_one_hot)
             train_fine_label_indices = torch.argmax(train_fine_labels_one_hot, dim=1)
             train_coarse_label_indices = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in train_fine_label_indices])
