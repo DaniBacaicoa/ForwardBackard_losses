@@ -215,7 +215,7 @@ class BasicBlock(nn.Module):
 
 
 class ResNet32(nn.Module):
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=20):
         super(ResNet32, self).__init__()
         self.in_channels = 16  # Start with 16 channels for CIFAR
 
