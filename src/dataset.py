@@ -268,6 +268,9 @@ class Data_handling(Dataset):
             self.test_dataset.data = torch.tensor(self.test_dataset.data, dtype=torch.float32)
             self.test_dataset.data = self.test_dataset.data.permute(0, 3, 1, 2) 
             self.num_features = None
+
+            self.train_dataset.targets = torch.tensor(self.train_dataset.targets, dtype=torch.long)
+            self.test_dataset.targets = torch.tensor(self.test_dataset.targets, dtype=torch.long)
         elif self.dataset in ['Clothing1M']:
             #TBD
             pass
