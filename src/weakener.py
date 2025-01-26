@@ -265,7 +265,8 @@ class Weakener(object):
             ),
                 [hat_Y @ self.M == I_c, hat_Y.T @ c_1 == d_1]
             )
-            prob.solve(solver=cvxpy.CLARABEL)
+            #prob.solve(solver=cvxpy.CLARABEL) #For cifar 100 it is not working
+            problem.solve(solver=cvxpy.ECOS)
             Y = hat_Y.value
         else:
             prob = cvxpy.Problem(cvxpy.Minimize(
@@ -273,7 +274,8 @@ class Weakener(object):
             ),
                 [hat_Y @ self.M == I_c]
             )
-            prob.solve(solver=cvxpy.CLARABEL)
+            #prob.solve(solver=cvxpy.CLARABEL)
+            problem.solve(solver=cvxpy.ECOS)
             Y = hat_Y.value
         
         return Y
