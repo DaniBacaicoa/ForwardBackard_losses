@@ -384,30 +384,52 @@ if __name__ == "__main__":
 
 # CIFAR100
 ## pll
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward --corr_p 0.2 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward --corr_p 0.5 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward --corr_p 0.8 --epochs 50
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward --corr_p 0.2 --epochs  40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward --corr_p 0.8 --epochs 40
 
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward --corr_p 0.2 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward --corr_p 0.5 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward --corr_p 0.8 --epochs 50
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward --corr_p 0.8 --epochs 40
 
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt --corr_p 0.2 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt --corr_p 0.5 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt --corr_p 0.8 --epochs 50
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt --corr_p 0.8 --epochs 40
 
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt_conv --corr_p 0.2 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt_conv --corr_p 0.5 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt_conv --corr_p 0.8 --epochs 50
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt_conv --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt_conv --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_opt_conv --corr_p 0.8 --epochs 40
 
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_conv --corr_p 0.2 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_conv --corr_p 0.5 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_conv --corr_p 0.8 --epochs 50
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_conv --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_conv --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Backward_conv --corr_p 0.8 --epochs 40
 
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 50
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 40
 
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 50
-# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 50
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption pll --loss_type Forward_opt --corr_p 0.8 --epochs 40
+
+# CIFAR100
+## Noisy
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Forward --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Forward --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet18 --corruption Noisy_CIFAR100 --loss_type Forward --corr_p 0.8 --epochs 40
+
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Backward --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Backward --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Backward --corr_p 0.8 --epochs 40
+
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Backward_conv --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Backward_conv --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Backward_conv --corr_p 0.8 --epochs 40
+
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Forward_opt --corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Forward_opt --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type Forward_opt --corr_p 0.8 --epochs 40
+
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type FB_decomposed--corr_p 0.2 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type FB_decomposed --corr_p 0.5 --epochs 40
+# python main.py --reps 5 --dataset Cifar100 --model resnet32 --corruption Noisy_CIFAR100 --loss_type FB_decomposed --corr_p 0.8 --epochs 40
