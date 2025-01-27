@@ -21,6 +21,8 @@ class Weakener(object):
         # Matrices
         self.M = None
             #For FB losses
+        self.Mr = None
+        self.Ml = None
         self.B = None
         self.B_opt = None
         self.F = None
@@ -52,9 +54,8 @@ class Weakener(object):
                       [0. , 0. , self.corr_p, 0. , 0. , 0. , 0. , 1-self.corr_p, 0. , 0. ],
                       [0. , 0. , 0. , self.corr_p, 0. , 0. , 0. , 0. , 1. , 0. ],
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1. ]])
-        elif model_class == 'Noisy_Patrini_MNIST_decomposed':
             # Noise_l is: 2 -> 7; 7 -> 1
-            Ml = np.array([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+            self.Ml = np.array([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 1. , 0. , 0. , 0. , 0. , 0. , self.corr_p, 0. , 0. ],
                       [0. , 0. , 1-self.corr_p, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 0. , 0. , 1, 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -65,7 +66,7 @@ class Weakener(object):
                       [0. , 0. , 0. , 0, 0. , 0. , 0. , 0. , 1. , 0. ],
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1. ]])
             # Noise_l is: 3 -> 8; 5 <-> 6
-            Mr = np.array([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+            self.Mr = np.array([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 1. , 0. , 0. , 0. , 0. , 0. , 0, 0. , 0. ],
                       [0. , 0. , 1, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                       [0. , 0. , 0. , 1-self.corr_p, 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -88,9 +89,8 @@ class Weakener(object):
                       [0. , 0. , 0. , 0. , self.corr_p , 0. , 0. , 1. , 0. , 0. ],
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1. , 0. ],
                       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1-self.corr_p ]])
-        elif model_class == 'Noisy_Patrini_CIFAR10_decomposed':
             # Noise_l TRUCK → AUTOMOBILE, BIRD → AIRPLANE, 
-            Ml = np.array([
+            self.Ml = np.array([
                     [1. , 0. , self.corr_p , 0. , 0. , 0. , 0. , 0. , 0. , 0. ], 
                     [0. , 1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , self.corr_p ],
                     [0. , 0. , 1-self.corr_p , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -103,7 +103,7 @@ class Weakener(object):
                     [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1-self.corr_p ]
                 ])
             # Noise_l DEER → HORSE, CAT ↔ DOG
-            Mr = np.array([
+            self.Mr = np.array([
                     [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ], 
                     [0. , 1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
                     [0. , 0. , 1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -115,7 +115,6 @@ class Weakener(object):
                     [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1. , 0. ],
                     [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 1. ]
                 ])
-            
         elif model_class == 'Noisy_CIFAR100':
             M = np.array([
                     [1-self.corr_p,   0,      0,      0,      0,      0,      0,      0,      0,    self.corr_p,     0,      0,      0,      0,      0,      0,      0,      0,      0,      0],
@@ -138,8 +137,7 @@ class Weakener(object):
                     [0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,    self.corr_p,   1-self.corr_p,   0,      0],
                     [0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,    self.corr_p,   1-self.corr_p,   0],
                     [0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,    self.corr_p,   1-self.corr_p]])
-        elif model_class == 'Noisy_CIFAR100_decomposed':
-            Ml = np.array([
+            self.Ml = np.array([
                 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -160,7 +158,7 @@ class Weakener(object):
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, self.corr_p, 1 - self.corr_p, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, self.corr_p, 1 - self.corr_p, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, self.corr_p, 1 - self.corr_p]])
-            Mr = np.array([
+            self.Mr = np.array([
                 [1 - self.corr_p, 0, 0, 0, 0, 0, 0, 0, 0, self.corr_p, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [self.corr_p, 1 - self.corr_p, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, self.corr_p, 1 - self.corr_p, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -186,6 +184,39 @@ class Weakener(object):
             M = np.array([
                 [1-self.corr_n, self.corr_p  ],
                 [self.corr_n  , 1-self.corr_p]])
+        elif model_class == 'Decomposable_noisy_binary_0.2_0.2':
+            M = np.array([
+                [0.8, 0.2],
+                [0.2, 0.8]
+                ])
+            self.Ml = np.array([
+                [0.9, 0.1],
+                [0.1, 0.9]])
+            self.Mr = np.array([
+                [0.875, 0.125],
+                [0.125, 0.875]])
+        elif model_class == 'Decomposable_noisy_binary_0.3_0.1':
+            M = np.array([
+                [0.7, 0.1],
+                [0.3, 0.9]
+                ])
+            self.Ml = np.array([
+                [0.85, 0.05],
+                [0.15, 0.95]])
+            self.Mr = np.array([
+                [0.8125, 0.0625],
+                [0.1875, 0.9375]])
+        elif model_class == 'Decomposable_noisy_binary_0.4_0.4':
+            M = np.array([
+                [0.6, 0.4],
+                [0.4, 0.6]
+                ])
+            self.Ml = np.array([
+                [0.9, 0.1],
+                [0.1, 0.9]])
+            self.Mr = np.array([
+                [0.625, 0.375],
+                [0.375, 0.625]])
         elif model_class == 'pu':
             if self.c > 2:
                 raise NameError('PU corruption coud only be applied when tne number o true classes is 2')
@@ -234,7 +265,10 @@ class Weakener(object):
             M = (1 - np.eye(c)) / (c - 1)
             #self.M, self.Z, self.labels = self.label_matrix(M)
             #self.M = M
-
+            Z = np.array([[int(x) for x in list(bin(i)[2:].zfill(c))] 
+              for i in range(2**c) if bin(i).count('1') == 2])
+            self.Ml = (1/(c-1)) * Z
+            self.Mr = (1/(c-2)) * (1 - Z).T
         # c < d
         elif model_class == 'weak':
             '''
@@ -262,8 +296,6 @@ class Weakener(object):
             M /= np.sum(M, 0)
             #self.M, self.Z, self.labels = self.label_matrix(M)
             #self.M = M
-
-
         elif model_class == 'pll':
             # Mixing matrix for making pll corruption similar to that in
             # Instance-Dependent PLL (Xu, et al. 2021)
@@ -288,6 +320,10 @@ class Weakener(object):
             '''
             M =  np.ones(self.c) - np.eye(self.c)
             M = M / M.sum(0)
+            Z = np.array([[int(x) for x in list(bin(i)[2:].zfill(self.c))] 
+              for i in range(2**self.c) if bin(i).count('1') == 2])
+            self.Ml = (1/(self.c-1)) * Z
+            self.Mr = (1/(self.c-2)) * (1 - Z).T
             
 
         self.M, self.Z, self.labels = self.label_matrix(M)
