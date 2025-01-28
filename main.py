@@ -52,6 +52,9 @@ def main(args):
             tm = torch.from_numpy(Weak.M)
             B = tm @ torch.inverse(tm.T @ torch.inverse(torch.diag(pest)) @ tm) @ tm.T @ torch.inverse(torch.diag(pest))
             loss_fn = losses.FwdBwdLoss(B, Weak.M)
+        elif loss_type == 'FB_decomposed':
+            B = np.linalg.pinv(Weak.Ml)
+            loss_fn = losses.FwdBwdLoss(B, Weak.Mr)
         elif loss_type == 'EM':
             loss_fn = losses.EMLoss(Weak.M)
         elif loss_type == 'LBL':
@@ -240,6 +243,10 @@ if __name__ == "__main__":
 # python main.py --reps 10 --dataset mnist --model mlp --corruption Noisy_Patrini_MNIST --loss_type Forward_opt --corr_p 0.2 --epochs 50
 # python main.py --reps 10 --dataset mnist --model mlp --corruption Noisy_Patrini_MNIST --loss_type Forward_opt --corr_p 0.5 --epochs 50
 # python main.py --reps 10 --dataset mnist --model mlp --corruption Noisy_Patrini_MNIST --loss_type Forward_opt --corr_p 0.8 --epochs 50
+
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Noisy_Patrini_MNIST --loss_type FB_decomposed --corr_p 0.2 --epochs 50
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Noisy_Patrini_MNIST --loss_type FB_decomposed --corr_p 0.5 --epochs 50
+# python main.py --reps 10 --dataset mnist --model mlp --corruption Noisy_Patrini_MNIST --loss_type FB_decomposed --corr_p 0.8 --epochs 50
 
 
 # MNIST
