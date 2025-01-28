@@ -226,6 +226,10 @@ if __name__ == "__main__":
 # python main.py --reps 10 --dataset banknote-authentication --model lr --corruption Noisy_Natarajan --loss_type Forward_opt --corr_p 0.3 --corr_n 0.1 --epochs 50
 # python main.py --reps 10 --dataset banknote-authentication --model lr --corruption Noisy_Natarajan --loss_type Forward_opt --corr_p 0.4 --corr_n 0.4 --epochs 50
 
+# python main.py --reps 10 --dataset banknote-authentication --model lr --corruption Noisy_Natarajan --loss_type FB_decomposed --corr_p 0.2 --corr_n 0.2 --epochs 50
+# python main.py --reps 10 --dataset banknote-authentication --model lr --corruption Noisy_Natarajan --loss_type FB_decomposed --corr_p 0.3 --corr_n 0.1 --epochs 50
+# python main.py --reps 10 --dataset banknote-authentication --model lr --corruption Noisy_Natarajan --loss_type FB_decomposed --corr_p 0.4 --corr_n 0.4 --epochs 50
+
 # MNIST
 ## Noisy
 # python main.py --reps 10 --dataset mnist --model mlp --corruption Noisy_Patrini_MNIST --loss_type Forward --corr_p 0.2 --epochs 50
