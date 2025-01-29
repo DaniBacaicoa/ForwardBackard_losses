@@ -183,7 +183,7 @@ def main(args):
         elif model == 'resnet32':
             #mlp = ResNet32(num_classes=20)
             mlp = ResNet(BasicBlock, layers=[5, 5, 5], num_classes=20)
-            optim = torch.optim.SGD(mlp.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+            optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
             #optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
             mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
