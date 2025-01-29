@@ -139,9 +139,11 @@ def main(args):
                 file_path = os.path.join(res_dir, file_name)
                 results.to_csv(file_path, index=False)
         elif model == 'resnet18':
-            mlp = ResNet18(num_classes=10)
-            optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
-            mlp, results = train_and_evaluate(ResNet18, trainloader, testloader, optimizer=optim, 
+            #mlp = ResNet18(num_classes=10)
+            mlp = ResNet18CIFAR(BasicBlock, [2, 2, 2, 2], num_classes=10)
+            optim = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+            #optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
+            mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                             sound=10, rep=i, loss_type=loss_type)
             results_dict = {'overall_models': mlp}
@@ -159,7 +161,7 @@ def main(args):
             with open(pickle_path, "wb") as f:
                 pickle.dump(results_dict, f)
         elif model == 'resnet18_old':
-            mlp = ResNet18(num_classes=10)
+            mlp = ResNet18_old(num_classes=10)
             optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
             mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
@@ -179,9 +181,11 @@ def main(args):
             with open(pickle_path, "wb") as f:
                 pickle.dump(results_dict, f)
         elif model == 'resnet32':
-            mlp = ResNet32(num_classes=20)
-            optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
-            mlp, results = train_and_evaluate(ResNet32, trainloader, testloader, optimizer=optim, 
+            #mlp = ResNet32(num_classes=20)
+            mlp = ResNet(BasicBlock, layers=[5, 5, 5], num_classes=20)
+            optim = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+            #optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
+            mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                             sound=10, rep=i, loss_type=loss_type)
             results_dict = {'overall_models': mlp}

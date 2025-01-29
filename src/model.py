@@ -45,13 +45,13 @@ class MLP(nn.Module):
         x = self.layers[-1](x)
         return x
 
-
+'''
 class Basic_ResNet18(nn.Module):
     def __init__(self, num_classes=1000):
-        '''
+        
         ResNet18 model with the final fully connected layer replaced to match the number of classes.
 
-        '''
+        
         super(ResNet18, self).__init__()
         
         # Load the pre-trained ResNet18 model
@@ -192,24 +192,29 @@ class BasicBlock(nn.Module):
         super(BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.downsample = downsample
+        self.stride = stride
 
     def forward(self, x):
         identity = x
-        if self.downsample is not None:
-            identity = self.downsample(x)
+        #if self.downsample is not None:
+        #    identity = self.downsample(x)
 
         out = self.conv1(x)
         out = self.bn1(out)
-        out = F.relu(out)
+        out = self.relu(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
 
         out = self.conv2(out)
         out = self.bn2(out)
 
         out += identity
-        out = F.relu(out)
+        out = self.relu(out)
 
         return out
 
@@ -354,3 +359,237 @@ class ResNet18(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+
+
+# Define ResNet Architecture
+class ResNet(nn.Module):
+    def __init__(self, block, layers, num_classes=100):
+        super(ResNet, self).__init__()
+        self.in_channels = 16
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.relu = nn.ReLU(inplace=True)
+        self.layer1 = self._make_layer(block, 16, layers[0], stride=1)
+        self.layer2 = self._make_layer(block, 32, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, 64, layers[2], stride=2)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(64 * block.expansion, num_classes)
+
+        # Weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def _make_layer(self, block, out_channels, blocks, stride=1):
+        downsample = None
+        if stride != 1 or self.in_channels != out_channels * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(
+                    self.in_channels,
+                    out_channels * block.expansion,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(out_channels * block.expansion),
+            )
+
+        layers = []
+        layers.append(block(self.in_channels, out_channels, stride, downsample))
+        self.in_channels = out_channels * block.expansion
+        for _ in range(1, blocks):
+            layers.append(block(self.in_channels, out_channels))
+
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+
+        return x
+        '''
+
+class BasicBlock(nn.Module):
+    expansion = 1
+    def __init__(self, in_channels, out_channels, stride=1, downsample=None):
+        super(BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, 
+                               stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+        
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, 
+                               stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+
+        self.downsample = downsample
+
+    def forward(self, x):
+        identity = x
+        
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+        
+        if self.downsample is not None:
+            identity = self.downsample(x)
+        
+        out = self.conv2(out)
+        out = self.bn2(out)
+        
+        out += identity
+        out = self.relu(out)
+        return out
+
+class ResNet18CIFAR(nn.Module):
+    """A ResNet-18 adapted for CIFAR-10: 
+       - 4 layers with [2, 2, 2, 2] BasicBlocks
+       - 3×3 conv (stride=1) at the stem
+    """
+    def __init__(self, block, layers, num_classes=10):
+        super(ResNet18CIFAR, self).__init__()
+        self.in_channels = 64  # Start with 64 channels (as in standard ResNet-18)
+        
+        # Stem: for CIFAR-10, we can do a simple 3×3 conv, stride=1, no pooling
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, 
+                               padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        
+        # 4 layers (stages), typical ResNet-18 config is [2, 2, 2, 2]
+        self.layer1 = self._make_layer(block, 64, layers[0], stride=1)
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        
+        # Weight initialization (Kaiming)
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+
+    def _make_layer(self, block, out_channels, num_blocks, stride):
+        downsample = None
+        # If we're changing the spatial dimension (stride != 1) or 
+        # the number of channels, we need a downsample
+        if stride != 1 or self.in_channels != out_channels * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.in_channels,
+                          out_channels * block.expansion,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
+                nn.BatchNorm2d(out_channels * block.expansion),
+            )
+
+        layers = []
+        # First block in this layer
+        layers.append(block(self.in_channels, out_channels, 
+                            stride=stride, downsample=downsample))
+        self.in_channels = out_channels * block.expansion
+
+        # Remaining blocks in this layer
+        for _ in range(1, num_blocks):
+            layers.append(block(self.in_channels, out_channels))
+        
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.conv1(x)   # (N, 64, 32, 32)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.layer1(x)  # (N, 64, 32, 32)
+        x = self.layer2(x)  # (N,128, 16, 16)
+        x = self.layer3(x)  # (N,256,  8,  8)
+        x = self.layer4(x)  # (N,512,  4,  4)
+
+        x = self.avgpool(x) # (N,512,1,1)
+        x = torch.flatten(x, 1)  # (N,512)
+        x = self.fc(x)          # (N,10)
+        return x
+
+class ResNet(nn.Module):
+    def __init__(self, block, layers, num_classes=100):
+        super(ResNet, self).__init__()
+        self.in_channels = 16
+        
+        # Initial (stem) convolution: 3 -> 16
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1   = nn.BatchNorm2d(16)
+        self.relu  = nn.ReLU(inplace=True)
+        
+        # Layers (stages)
+        self.layer1 = self._make_layer(block, 16, layers[0], stride=1)
+        self.layer2 = self._make_layer(block, 32, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, 64, layers[2], stride=2)
+        
+        # Global average pool + fully-connected
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc      = nn.Linear(64 * block.expansion, num_classes)
+
+        # Weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def _make_layer(self, block, out_channels, blocks, stride=1):
+        downsample = None
+        # If we are changing spatial resolution (stride != 1) 
+        # or changing channel dimension, we need a downsample
+        if stride != 1 or self.in_channels != out_channels * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.in_channels,
+                          out_channels * block.expansion,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
+                nn.BatchNorm2d(out_channels * block.expansion),
+            )
+
+        layers = []
+        # First block in the layer
+        layers.append(block(self.in_channels, out_channels, stride, downsample))
+        self.in_channels = out_channels * block.expansion
+        
+        # Remaining blocks in the layer
+        for _ in range(1, blocks):
+            layers.append(block(self.in_channels, out_channels))
+        
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.layer1(x)  # e.g., keeps resolution if stride=1
+        x = self.layer2(x)  # e.g., halves resolution if stride=2
+        x = self.layer3(x)  # e.g., halves resolution again
+        
+        x = self.avgpool(x)       # Global average pooling
+        x = torch.flatten(x, 1)   # Flatten to (batch_size, channels)
+        x = self.fc(x)            # Fully connected layer
+
+        return x
