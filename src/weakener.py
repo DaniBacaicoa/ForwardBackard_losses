@@ -184,6 +184,7 @@ class Weakener(object):
             M = np.array([
                 [1-self.corr_n, self.corr_p  ],
                 [self.corr_n  , 1-self.corr_p]])
+        #elif model_class == 'Noisy_Natarajan':
         elif model_class == 'Decomposable_noisy_binary_0.2_0.2':
             M = np.array([
                 [0.8, 0.2],
@@ -195,17 +196,19 @@ class Weakener(object):
             self.Mr = np.array([
                 [0.875, 0.125],
                 [0.125, 0.875]])
+        #elif model_class == 'Noisy_Natarajan':
         elif model_class == 'Decomposable_noisy_binary_0.3_0.1':
             M = np.array([
-                [0.7, 0.1],
-                [0.3, 0.9]
+                [0.9, 0.3],
+                [0.1, 0.7]
                 ])
             self.Ml = np.array([
-                [0.85, 0.05],
-                [0.15, 0.95]])
+                [0.95, 0.15],
+                [0.05, 0.85]])
             self.Mr = np.array([
-                [0.8125, 0.0625],
-                [0.1875, 0.9375]])
+                [0.9375, 0.1875],
+                [0.0625, 0.8125]])
+        #elif model_class == 'Noisy_Natarajan':
         elif model_class == 'Decomposable_noisy_binary_0.4_0.4':
             M = np.array([
                 [0.6, 0.4],
@@ -257,6 +260,8 @@ class Weakener(object):
         elif model_class == 'unif_noise':
             M = np.eye(self.c)*(1-self.corr_p-self.corr_p/(self.c - 1)) + np.ones(self.c)*self.corr_p/(self.c - 1)
             M /= np.sum(M, 0)
+            self.Ml = self.factorize_stochastic_general()
+            self.Mr = self.factorize_stochastic_general()
 
         elif model_class == 'complementary':
             '''
@@ -267,8 +272,8 @@ class Weakener(object):
             #self.M = M
             Z = np.array([[int(x) for x in list(bin(i)[2:].zfill(c))] 
               for i in range(2**c) if bin(i).count('1') == 2])
-            self.Ml = (1/(c-1)) * Z
-            self.Mr = (1/(c-2)) * (1 - Z).T
+            self.Mr = (1/(c-1)) * Z
+            self.Ml = (1/(c-2)) * (1 - Z).T
         # c < d
         elif model_class == 'weak':
             '''
@@ -322,8 +327,8 @@ class Weakener(object):
             M = M / M.sum(0)
             Z = np.array([[int(x) for x in list(bin(i)[2:].zfill(self.c))] 
               for i in range(2**self.c) if bin(i).count('1') == 2])
-            self.Ml = (1/(self.c-1)) * Z
-            self.Mr = (1/(self.c-2)) * (1 - Z).T
+            self.Mr = (1/(self.c-1)) * Z
+            self.Ml = (1/(self.c-2)) * (1 - Z).T
             
 
         self.M, self.Z, self.labels = self.label_matrix(M)
@@ -520,3 +525,51 @@ class Weakener(object):
         for i in range(1, c + 1):
             probs[i] = p ** i * q ** (c - i) + p ** (i - 1) * q ** (c - i + 1)
         return probs, np.array(Z)
+    
+    def factorize_stochastic_general(self):
+        c = self.c
+        corr_p = self.corr_p
+        if c < 2:
+            raise ValueError("c must be at least 2.")
+        if not (0 <= corr_p <= (c-1)/c):
+            raise ValueError(f"corr_p must be in [0, {(c-1)/c:.4f}] for a valid factorization.")
+        M_direct = (1 - corr_p) * np.eye(c) + (corr_p/(c-1)) * np.ones((c, c))
+
+        a = c*(c-1)
+        b = -2*(c-1)
+        cc = corr_p 
+
+        discriminant = b*b - 4*a*cc  
+        if discriminant < 0:
+            # Just to guard against floating precision issues:
+            discriminant = 0.0
+
+        sqrt_disc = np.sqrt(discriminant)
+
+        # Two possible roots:
+        o1 = (-b + sqrt_disc) / (2*a)  # "plus" root
+        o2 = (-b - sqrt_disc) / (2*a)  # "minus" root
+
+        # We'll pick whichever of o1 or o2 yields 0 <= o <= 1/(c-1) and 
+        # also 0 <= d = 1 - (c-1)*o <= 1
+        def valid(o):
+            d_test = 1 - (c-1)*o
+            return (o >= 0) and (d_test >= 0) and (o <= 1) and (d_test <= 1)
+
+        candidates = []
+        for o_candidate in (o1, o2):
+            if valid(o_candidate):
+                candidates.append(o_candidate)
+
+        if not candidates:
+            raise ValueError(
+                "No nonnegative solution for (d, o) found. This can happen if corr_p is too large."
+            )
+        
+        o = min(candidates)
+        d = 1 - (c-1)*o
+        X = np.full((c, c), o, dtype=float)
+        np.fill_diagonal(X, d)
+
+        #M_computed = X @ X
+        return X
