@@ -603,7 +603,7 @@ class ResNet_18(nn.Module):
         # Load a base ResNet-18 (no pretrained weights)
         # If your PyTorch version uses 'weights' argument, set weights=None
         # If it uses 'pretrained' argument, set pretrained=False
-        self.resnet = models.resnet18(weights=ResNet18_Weights.DEFAULT)
+        self.resnet = models.resnet18(weights=None)
         
         # 1) Modify the first convolution layer:
         #    7×7 kernel, stride=2 --> 3×3 kernel, stride=1

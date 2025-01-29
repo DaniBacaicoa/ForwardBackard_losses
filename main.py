@@ -141,7 +141,7 @@ def main(args):
         elif model == 'resnet18':
             #mlp = ResNet18(num_classes=10)
             mlp = ResNet_18(num_classes=10)
-            optim = torch.optim.SGD(mlp.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+            optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
             #optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
             mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
