@@ -8,7 +8,7 @@ from ucimlrepo import fetch_ucirepo
 
 from src.dataset import Data_handling
 from src.weakener import Weakener
-from src.model import MLP,ResNet18,ResNet32,ResNet18_old
+from src.model import MLP,BasicBlock,ResNet18CIFAR,ResNet#ResNet18,ResNet32,ResNet18_old
 from utils.datasets_generation import generate_dataset
 import utils.losses as losses
 from utils.train_test_loop import train_and_evaluate
