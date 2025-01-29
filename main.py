@@ -8,7 +8,7 @@ from ucimlrepo import fetch_ucirepo
 
 from src.dataset import Data_handling
 from src.weakener import Weakener
-from src.model import MLP,ResNet18,ResNet32
+from src.model import MLP,ResNet18,ResNet32,ResNet18_old
 from utils.datasets_generation import generate_dataset
 import utils.losses as losses
 from utils.train_test_loop import train_and_evaluate
@@ -141,6 +141,26 @@ def main(args):
         elif model == 'resnet18':
             mlp = ResNet18(num_classes=10)
             optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
+            mlp, results = train_and_evaluate(ResNet18, trainloader, testloader, optimizer=optim, 
+                                            loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
+                                            sound=10, rep=i, loss_type=loss_type)
+            results_dict = {'overall_models': mlp}
+            res_dir = f"Results/{dataset}_{corruption}"
+            os.makedirs(res_dir, exist_ok=True)
+            if corr_n is not None:
+                file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.csv'
+                pickle_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.pkl'
+            else:
+                file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.csv'
+                pickle_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.pkl'
+            file_path = os.path.join(res_dir, file_name)
+            pickle_path = os.path.join(res_dir, pickle_name)
+            results.to_csv(file_path, index=False)
+            with open(pickle_path, "wb") as f:
+                pickle.dump(results_dict, f)
+        elif model == 'resnet18_old':
+            mlp = ResNet18(num_classes=10)
+            optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
             mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                             sound=10, rep=i, loss_type=loss_type)
@@ -161,7 +181,7 @@ def main(args):
         elif model == 'resnet32':
             mlp = ResNet32(num_classes=20)
             optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
-            mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
+            mlp, results = train_and_evaluate(ResNet32, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
                                             sound=10, rep=i, loss_type=loss_type)
             results_dict = {'overall_models': mlp}
