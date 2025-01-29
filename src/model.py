@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.models as models
 
 class MLP(nn.Module):
     def __init__(self, input_size, hidden_sizes, output_size, dropout_p=0.0, bn = False, activation='relu'):
@@ -593,3 +594,28 @@ class ResNet(nn.Module):
         x = self.fc(x)            # Fully connected layer
 
         return x
+
+
+class ResNet_18(nn.Module):
+    def __init__(self, num_classes=10):
+        super(ResNet_18, self).__init__()
+        
+        # Load a base ResNet-18 (no pretrained weights)
+        # If your PyTorch version uses 'weights' argument, set weights=None
+        # If it uses 'pretrained' argument, set pretrained=False
+        self.resnet = models.resnet18(pretrained=True)
+        
+        # 1) Modify the first convolution layer:
+        #    7×7 kernel, stride=2 --> 3×3 kernel, stride=1
+        self.resnet.conv1 = nn.Conv2d(
+            3, 64, kernel_size=3, stride=1, padding=1, bias=False
+        )
+        
+        # 2) Remove the max-pool layer
+        self.resnet.maxpool = nn.Identity()
+        
+        # 3) Replace the final FC layer to match CIFAR-10 classes
+        self.resnet.fc = nn.Linear(in_features=512, out_features=num_classes)
+
+    def forward(self, x):
+        return self.resnet(x)

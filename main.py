@@ -8,7 +8,7 @@ from ucimlrepo import fetch_ucirepo
 
 from src.dataset import Data_handling
 from src.weakener import Weakener
-from src.model import MLP,BasicBlock,ResNet18CIFAR,ResNet#ResNet18,ResNet32,ResNet18_old
+from src.model import MLP,ResNet_18,BasicBlock,ResNet18CIFAR,ResNet#ResNet18,ResNet32,ResNet18_old
 from utils.datasets_generation import generate_dataset
 import utils.losses as losses
 from utils.train_test_loop import train_and_evaluate
@@ -140,12 +140,12 @@ def main(args):
                 results.to_csv(file_path, index=False)
         elif model == 'resnet18':
             #mlp = ResNet18(num_classes=10)
-            mlp = ResNet18CIFAR(BasicBlock, [2, 2, 2, 2], num_classes=10)
+            mlp = ResNet_18(num_classes=10)
             optim = torch.optim.SGD(mlp.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
             #optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
             mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
                                             loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
-                                            sound=10, rep=i, loss_type=loss_type)
+                                            sound=5, rep=i, loss_type=loss_type)
             results_dict = {'overall_models': mlp}
             res_dir = f"Results/{dataset}_{corruption}"
             os.makedirs(res_dir, exist_ok=True)
