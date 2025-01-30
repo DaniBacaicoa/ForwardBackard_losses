@@ -57,7 +57,7 @@ class Clothing1MDataset(Dataset):
         with open(self.annotations_file, 'r') as f:
             for line in f.read().splitlines():
                 # Construct the correct image path
-                # Example: If line is "0/123.jpg", the image path should be "Datasets/raw_datasets/Clothing1M/images/0/123.jpg"
+                # Example: If line is "9/99/943078821,1079594999.jpg", the image path should be "Datasets/raw_datasets/Clothing1M/images/9/99/943078821,1079594999.jpg"
                 image_path = os.path.join(self.root_dir, 'images', line)
                 if os.path.exists(image_path):  # Check if the image file exists
                     image_paths.append(image_path)
@@ -67,6 +67,27 @@ class Clothing1MDataset(Dataset):
                     print(f"Warning: Image file {image_path} not found. Skipping.")
 
         return image_paths, clean_labels, noisy_labels
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        image_path = self.image_paths[idx]
+        clean_label = self.clean_labels[idx]
+        noisy_label = self.noisy_labels[idx]
+
+        # Load the image
+        image = Image.open(image_path).convert('RGB')
+
+        # Apply transformations
+        if self.transform:
+            image = self.transform(image)
+
+        # Return clean or noisy label based on the flag
+        if self.use_noisy_labels:
+            return image, noisy_label
+        else:
+            return image, clean_label
 
 
 '''
