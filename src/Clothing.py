@@ -63,6 +63,7 @@ class Clothing1MDataset(Dataset):
                 #image_path = os.path.join(self.root_dir, line)
                 if os.path.exists(image_path):  # Check if the image file exists
                     image_paths.append(image_path)
+                    breakpoint()
                     clean_labels.append(clean_label_kv[line])
                     noisy_labels.append(noisy_label_kv[line])
                 else:
