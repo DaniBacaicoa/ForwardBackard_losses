@@ -59,7 +59,7 @@ class Clothing1MDataset(Dataset):
                 # Construct the correct image path
                 # Example: If line is "9/99/943078821,1079594999.jpg", the image path should be "Datasets/raw_datasets/Clothing1M/images/9/99/943078821,1079594999.jpg"
                 image_path = os.path.join(self.root_dir, 'image', line)
-                breakpoint()
+                #breakpoint()
                 #image_path = os.path.join(self.root_dir, line)
                 if os.path.exists(image_path):  # Check if the image file exists
                     image_paths.append(image_path)
