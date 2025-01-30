@@ -1,0 +1,64 @@
+
+from src.Clothing import Clothing1MDataset
+from src.Mixing_M_estimation import estimate_transition_matrix
+
+# Define transformations
+transform = transforms.Compose([
+    transforms.Resize((256, 256)),
+    transforms.RandomCrop(224),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+# Initialize dataset and data loader
+root_dir = './data/Clothing1M'
+train_dataset = Clothing1MDataset(root_dir, mode='train', transform=transform)
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
+
+
+# Initialize model
+num_classes = 14  # Clothing1M has 14 classes
+model = resnet50(pretrained=True)
+model.fc = nn.Linear(model.fc.in_features, num_classes)
+model = model.cuda()
+
+# Train the model (simplified training loop)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
+
+for epoch in range(10):  # Train for 10 epochs
+    model.train()
+    for images, labels in train_loader:
+        images, labels = images.cuda(), labels.cuda()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+# Estimate the transition matrix
+T = estimate_transition_matrix(model, train_loader, num_classes)
+print("Estimated Transition Matrix T:\n", T)
+
+test_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+# Initialize datasets
+root_dir = './data/Clothing1M'
+train_dataset = Clothing1MDataset(root_dir, mode='train', transform=train_transform)
+val_dataset = Clothing1MDataset(root_dir, mode='val', transform=test_transform)
+test_dataset = Clothing1MDataset(root_dir, mode='test', transform=test_transform)
+
+# Create data loaders
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
+val_loader = DataLoader(val_dataset, batch_size=128, shuffle=False, num_workers=4)
+test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=4)
+
+# Print dataset sizes
+print(f"Training dataset size: {len(train_dataset)}")
+print(f"Validation dataset size: {len(val_dataset)}")
+print(f"Test dataset size: {len(test_dataset)}")
