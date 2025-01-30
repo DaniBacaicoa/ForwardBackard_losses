@@ -28,7 +28,7 @@ def estimate_transition_matrix(model, data_loader, num_classes):
     T = T / T.sum(axis=1, keepdims=True)
     return T
 
-
+'''
 # Initialize model
 num_classes = 14  # Clothing1M has 14 classes
 model = resnet50(pretrained=True)
@@ -52,3 +52,4 @@ for epoch in range(10):  # Train for 10 epochs
 # Estimate the transition matrix
 T = estimate_transition_matrix(model, train_loader, num_classes)
 print("Estimated Transition Matrix T:\n", T)
+'''

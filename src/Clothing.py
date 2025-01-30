@@ -84,7 +84,7 @@ class Clothing1MDataset(Dataset):
             return image, clean_label
 
 
-
+'''
 # Define transformations
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
@@ -107,3 +107,4 @@ for images, labels in train_loader:
     print(f"Batch of images shape: {images.shape}")  # Should be [batch_size, 3, 256, 256]
     print(f"Batch of labels: {labels}")             # Should be a tensor of labels
     break
+'''
