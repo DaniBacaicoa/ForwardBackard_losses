@@ -7,91 +7,79 @@ from PIL import Image
 
 
 
-
 class Clothing1MDataset(Dataset):
-    def __init__(self, root_dir, mode='train', transform=None, use_noisy_labels=False):
+    def __init__(self, root_dir, mode='train', transform=None):
         """
         Args:
             root_dir (str): Path to the dataset root directory.
             mode (str): One of 'train', 'val', or 'test'.
             transform (callable, optional): Optional transform to be applied on a sample.
-            use_noisy_labels (bool): If True, use noisy labels instead of clean labels.
         """
         self.root_dir = root_dir
         self.mode = mode
         self.transform = transform
-        self.use_noisy_labels = use_noisy_labels
 
         # Set the annotation file based on the mode
         if mode == 'train':
             self.annotations_file = os.path.join(root_dir, 'clean_train_key_list.txt')
+            self.noisy_annotations_file = os.path.join(root_dir, 'noisy_train_key_list.txt')
         elif mode == 'val':
             self.annotations_file = os.path.join(root_dir, 'clean_val_key_list.txt')
+            self.noisy_annotations_file = None  # No noisy labels for validation
         elif mode == 'test':
             self.annotations_file = os.path.join(root_dir, 'clean_test_key_list.txt')
+            self.noisy_annotations_file = None  # No noisy labels for testing
         else:
             raise ValueError("Mode must be one of 'train', 'val', or 'test'.")
 
         # Load the annotations
-        self.image_paths, self.clean_labels, self.noisy_labels = self._load_annotations()
+        self.image_paths, self.labels, self.noisy_flags = self._load_annotations()
 
     def _load_annotations(self):
         """
-        Load image paths, clean labels, and noisy labels from the annotation files.
+        Load image paths, labels, and noisy flags from the annotation files.
         """
         image_paths = []
-        clean_labels = []
-        noisy_labels = []
+        labels = []
+        noisy_flags = []
 
         # Load clean labels
         clean_label_kv_file = os.path.join(self.root_dir, 'clean_label_kv.txt')
         with open(clean_label_kv_file, 'r') as f:
             clean_label_kv = {line.split()[0]: int(line.split()[1]) for line in f.read().splitlines()}
 
-        # Load noisy labels
+        # Load noisy labels (if available)
         noisy_label_kv_file = os.path.join(self.root_dir, 'noisy_label_kv.txt')
-        with open(noisy_label_kv_file, 'r') as f:
-            noisy_label_kv = {line.split()[0]: int(line.split()[1]) for line in f.read().splitlines()}
+        if os.path.exists(noisy_label_kv_file):
+            with open(noisy_label_kv_file, 'r') as f:
+                noisy_label_kv = {line.split()[0]: int(line.split()[1]) for line in f.read().splitlines()}
+        else:
+            noisy_label_kv = {}  # If noisy_label_kv.txt doesn't exist, use an empty dictionary
 
-        # Load the list of image filenames
+        # Load clean samples
         with open(self.annotations_file, 'r') as f:
             for line in f.read().splitlines():
-                # Construct the correct image path
-                # Example: If line is "9/99/943078821,1079594999.jpg", the image path should be "Datasets/raw_datasets/Clothing1M/images/9/99/943078821,1079594999.jpg"
-                image_path = os.path.join(self.root_dir, 'image', line)
-                #breakpoint()
-                #image_path = os.path.join(self.root_dir, line)
+                image_path = os.path.join(self.root_dir, 'images', line)
                 if os.path.exists(image_path):  # Check if the image file exists
                     image_paths.append(image_path)
-                    breakpoint()
-                    clean_labels.append(clean_label_kv[line])
-                    noisy_labels.append(noisy_label_kv[line])
+                    labels.append(clean_label_kv[line])
+                    noisy_flags.append(0)  # 0 indicates a clean label
                 else:
                     print(f"Warning: Image file {image_path} not found. Skipping.")
 
-        return image_paths, clean_labels, noisy_labels
+        # Load noisy samples (only for training)
+        if self.noisy_annotations_file and os.path.exists(self.noisy_annotations_file):
+            with open(self.noisy_annotations_file, 'r') as f:
+                for line in f.read().splitlines():
+                    image_path = os.path.join(self.root_dir, 'images', line)
+                    if os.path.exists(image_path):  # Check if the image file exists
+                        image_paths.append(image_path)
+                        labels.append(noisy_label_kv.get(line, clean_label_kv.get(line, -1)))  # Fallback to clean label if noisy label is missing
+                        noisy_flags.append(1)  # 1 indicates a noisy label
+                    else:
+                        print(f"Warning: Image file {image_path} not found. Skipping.")
 
-    def __len__(self):
-        return len(self.image_paths)
-
-    def __getitem__(self, idx):
-        image_path = self.image_paths[idx]
-        clean_label = self.clean_labels[idx]
-        noisy_label = self.noisy_labels[idx]
-
-        # Load the image
-        image = Image.open(image_path).convert('RGB')
-
-        # Apply transformations
-        if self.transform:
-            image = self.transform(image)
-
-        # Return clean or noisy label based on the flag
-        if self.use_noisy_labels:
-            return image, noisy_label
-        else:
-            return image, clean_label
-
+        return image_paths, labels, noisy_flags
 
 '''
 
