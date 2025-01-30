@@ -12,7 +12,7 @@ transform = transforms.Compose([
 ])
 
 # Initialize dataset and data loader
-root_dir = 'Datasets/raw_datasets/Clothing1M'
+root_dir = 'Datasets/raw_datasets/Clothing1M/'
 train_dataset = Clothing1MDataset(root_dir, mode='train', transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
 
@@ -48,7 +48,7 @@ test_transform = transforms.Compose([
 ])
 
 # Initialize datasets
-root_dir = 'Datasets/raw_datasets/Clothing1M'
+root_dir = 'Datasets/raw_datasets/Clothing1M/'
 train_dataset = Clothing1MDataset(root_dir, mode='train', transform=train_transform)
 #val_dataset = Clothing1MDataset(root_dir, mode='val', transform=test_transform)
 test_dataset = Clothing1MDataset(root_dir, mode='test', transform=test_transform)
