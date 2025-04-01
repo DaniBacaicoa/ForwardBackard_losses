@@ -129,6 +129,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv_kumo01_fb/
 
 # Spyder project settings
 .spyderproject
