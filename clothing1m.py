@@ -3,7 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
 
-train_data_list = []# commet in this line
+train_data_list = []
 for element in clean_label_kv:
     path, label = element.split()
     if path in clean_train_key_list:

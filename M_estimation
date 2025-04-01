@@ -1,0 +1,59 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+import numpy as np
+
+# Define a simple neural network for classification
+class SimpleCNN(nn.Module):
+    def __init__(self, num_classes):
+        super(SimpleCNN, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=1)
+        self.relu = nn.ReLU()
+        self.fc = nn.Linear(16 * 32 * 32, num_classes)  # Assuming input images are 32x32
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        return x
+
+# Function to estimate the transition matrix
+def estimate_transition_matrix(dataloader, model, num_classes, device):
+    model.eval()
+    clean_label_counts = torch.zeros(num_classes, dtype=torch.float).to(device)
+    noisy_label_counts = torch.zeros(num_classes, dtype=torch.float).to(device)
+    joint_counts = torch.zeros((num_classes, num_classes), dtype=torch.float).to(device)
+
+    with torch.no_grad():
+        for images, labels, noisy_flags in dataloader:
+            images, labels, noisy_flags = images.to(device), labels.to(device), noisy_flags.to(device)
+            outputs = model(images)
+            _, preds = torch.max(outputs, 1)
+
+            for i in range(len(labels)):
+                if noisy_flags[i] == 0:  # Clean label
+                    clean_label_counts[labels[i]] += 1
+                    joint_counts[labels[i], preds[i]] += 1
+                else:  # Noisy label
+                    noisy_label_counts[labels[i]] += 1
+
+    # Compute the transition matrix
+    transition_matrix = torch.zeros((num_classes, num_classes), dtype=torch.float).to(device)
+    for i in range(num_classes):
+        if clean_label_counts[i] > 0:
+            transition_matrix[i] = joint_counts[i] / clean_label_counts[i]
+        else:
+            transition_matrix[i] = torch.zeros(num_classes).to(device)
+
+    return transition_matrix.cpu().numpy()
+
+# Example usage
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+num_classes = 10  # Adjust based on your dataset
+model = SimpleCNN(num_classes).to(device)
+
+# Assume 'train_loader' is your DataLoader
+transition_matrix = estimate_transition_matrix(train_loader, model, num_classes, device)
+print("Estimated Transition Matrix:\n", transition_matrix)
