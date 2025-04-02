@@ -288,9 +288,9 @@ if __name__ == "__main__":
 
 # MNIST
 ## pll
-# python main.py --reps 10 --dataset mnist --model mlp --corruption pll --loss_type Forward --corr_p 0.2 --epochs 50
-# python main.py --reps 10 --dataset mnist --model mlp --corruption pll --loss_type Forward --corr_p 0.5 --epochs 50
-# python main.py --reps 10 --dataset mnist --model mlp --corruption pll --loss_type Forward --corr_p 0.8 --epochs 50
+# python main.py --reps 2 --dataset mnist --model mlp --corruption pll --loss_type Forward --corr_p 0.2 --epochs 10 --lr 1e-2 
+# python main.py --reps 2 --dataset mnist --model mlp --corruption pll --loss_type Forward --corr_p 0.5 --epochs 10 --lr 1e-2
+# python main.py --reps 2 --dataset mnist --model mlp --corruption pll --loss_type Forward --corr_p 0.8 --epochs 10 --lr 1e-2
 
 # python main.py --reps 10 --dataset mnist --model mlp --corruption pll --loss_type Backward --corr_p 0.2 --epochs 50
 # python main.py --reps 10 --dataset mnist --model mlp --corruption pll --loss_type Backward --corr_p 0.5 --epochs 50
