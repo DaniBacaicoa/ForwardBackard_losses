@@ -329,7 +329,141 @@ class Weakener(object):
               for i in range(2**self.c) if bin(i).count('1') == 2])
             self.Mr = (1/(self.c-1)) * Z
             self.Ml = (1/(self.c-2)) * (1 - Z).T
+        elif model_class == 'clothing1m':
+            M = np.eye(self.c)
+            #self.M, self.Z, self.labels = self.label_matrix(M)
+            def load_labels(filepath):
+                """Loads image path -> label mapping from a file."""
+                labels = {}
+
+                with open(filepath, 'r') as f:
+                    for line in f:
+                        parts = line.strip().split()
+                        if len(parts) == 2:
+
+                            image_path = os.path.normpath(parts[0])
+                            labels[image_path] = int(parts[1])
+                        else:
+
+                            pass # print(f"Warning: Skipping malformed line in {filepath}: {line.strip()}")
+                return labels
+            def load_key_list(filepath):
+                """Loads a list of image paths from a file."""
+                keys = []
+
+                with open(filepath, 'r') as f:
+                    for line in f:
+
+                        image_path = os.path.normpath(line.strip())
+                        if image_path: # Ensure line is not empty
+                            keys.append(image_path)
+                return keys
             
+            def estimate_transition_matrix(clean_labels_path, noisy_labels_path, num_classes):
+                """
+                Estimates the transition matrix T where T[i, j] = P(noisy=j | clean=i)
+                by comparing full clean and noisy label mappings.
+
+                Args:
+                    clean_labels_path (str): Path to the clean label file (e.g., clean_label_kv.txt).
+                    noisy_labels_path (str): Path to the noisy label file (e.g., noisy_label_kv.txt).
+                    num_classes (int): The total number of classes.
+
+                Returns:
+                    numpy.ndarray: The estimated transition matrix (num_classes x num_classes),
+                                or None if loading fails.
+                """
+                print("Loading clean labels from file...")
+                clean_labels = load_labels(clean_labels_path)
+                print("Loading noisy labels from file...")
+                noisy_labels = load_labels(noisy_labels_path)
+
+                if clean_labels is None or noisy_labels is None:
+                    print("Error: Failed to load one or both label files. Cannot estimate matrix.")
+                    return None
+
+                if num_classes <= 0:
+                    print("Error: num_classes must be positive.")
+                    return None
+
+                print(f"Found {len(clean_labels)} clean label entries and {len(noisy_labels)} noisy label entries.")
+
+                common_keys = set(clean_labels.keys()) & set(noisy_labels.keys())
+                print(f"Found {len(common_keys)} images present in both clean and noisy label sets.")
+
+                if not common_keys:
+                    print("Error: No common images found between clean and noisy sets. Cannot estimate matrix.")
+                    return None
+
+                count_matrix = np.zeros((num_classes, num_classes), dtype=float)
+                invalid_labels_count = 0
+                for key in common_keys:
+                    clean_label = clean_labels[key]
+                    noisy_label = noisy_labels[key]
+                    if 0 <= clean_label < num_classes and 0 <= noisy_label < num_classes:
+                        count_matrix[noisy_label,clean_label] += 1.0
+                    else:
+                        invalid_labels_count += 1
+                if invalid_labels_count > 0:
+                    print(f"Warning: Skipped {invalid_labels_count} pairs due to invalid label indices (out of bounds).")
+
+                print("\nRaw Count Matrix (Rows=Clean, Cols=Noisy):")
+                with np.printoptions(threshold=np.inf, suppress=True):
+                    print(count_matrix.astype(int))
+
+                epsilon = 1e-8
+                zero_sum_rows = np.where(row_sums < epsilon)[0]
+                if len(zero_sum_rows) > 0:
+                    print(f"\nWarning: The following clean classes had no samples in the clean/noisy intersection:")
+                    print(f"Indices: {zero_sum_rows}")
+                    if category_names: print(f"Names: {[category_names[i] for i in zero_sum_rows]}")
+                    print("Their rows in the transition matrix will be zero.")
+
+                transition_matrix = count_matrix / np.sum(count_matrix, axis=0, keepdims=True)
+                return transition_matrix
+            metadata_dir = '/export/usuarios_ml4ds/danibacaicoa/ForwardBackard_losses_old/Datasets/raw_datasets/Clothing1M/'
+            clean_label_kv_path = os.path.join(metadata_dir, 'clean_label_kv.txt')
+            noisy_label_kv_path = os.path.join(metadata_dir, 'noisy_label_kv.txt')
+            M = estimate_transition_matrix(clean_label_kv_path, noisy_label_kv_path, 14)
+
+            n = M.shape[0]
+            eps = 1e-3
+            lr = 1e-2
+
+            # Initialize A in (eps, 1-eps), B >= 0, both column-stochastic
+            rng = np.random.default_rng(42)
+            A = rng.uniform(eps, 1-eps, size=(n,n))
+            A /= A.sum(axis=0, keepdims=True)
+            B = rng.random((n,n))
+            B /= B.sum(axis=0, keepdims=True)
+
+            # Alternating projected gradient descent
+            err = 999
+            it = 0
+            while err > 3e-2:
+                # gradient w.r.t. A
+                gradA = (A.dot(B) - M).dot(B.T)
+                A -= lr * gradA
+                # project A to [eps,1-eps] and column-normalize
+                A = np.clip(A, eps, 1-eps)
+                A /= A.sum(axis=0, keepdims=True)
+
+                # gradient w.r.t. B
+                gradB = A.T.dot(A.dot(B) - M)
+                B -= lr * gradB
+                # project B to [0, inf) and column-normalize
+                B = np.maximum(B, 0)
+                B /= B.sum(axis=0, keepdims=True)
+
+                err = np.linalg.norm(A.dot(B) - M, 'fro')
+                it += 1
+                if it % 100 == 0:
+                    print(f"Iteration {it}: Frobenius error = {err:.6e}")
+            # Final error
+            error = np.linalg.norm(A.dot(B) - M, 'fro')
+            self.Mr = A
+            self.Ml = B
+
 
         self.M, self.Z, self.labels = self.label_matrix(M)
         self.d = self.M.shape[0]

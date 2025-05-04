@@ -8,8 +8,8 @@ from ucimlrepo import fetch_ucirepo
 
 from src.dataset import Data_handling
 from src.weakener import Weakener
-from src.model import MLP,ResNet_18,BasicBlock,ResNet18CIFAR,ResNet#ResNet18,ResNet32,ResNet18_old
-from utils.datasets_generation import generate_dataset
+from src.model import MLP,ResNet_18,BasicBlock,ResNet18CIFAR,ResNet, ResNet50#ResNet18,ResNet32,ResNet18_old
+from utils.datasets_generation import generate_dataset,generate_clothing1m
 import utils.losses as losses
 from utils.train_test_loop import train_and_evaluate
 
@@ -27,8 +27,12 @@ def main(args):
 
 
     for i in range(reps):
-        generate_dataset(dataset=dataset,corruption=corruption,corr_p=corr_p,corr_n=corr_n,repetitions=i)
+        if dataset == 'clothing1m':
+            generate_clothing1m(dataset=dataset)
+        else:
+            generate_dataset(dataset=dataset,corruption=corruption,corr_p=corr_p,corr_n=corr_n,repetitions=i)
 
+    if dataset == 'clothing1m':
 
     for i in range(reps):
         
@@ -72,8 +76,11 @@ def main(args):
         # Include weak labels based on loss type
         if loss_type == 'OSL':
             Data.include_weak(Weak.w)
+        elif loss_type == 'clothing':
+            pass   
         else:
             Data.include_weak(Weak.z)
+    
 
         # Prepare data loaders
         trainloader, testloader = Data.get_dataloader(weak_labels='weak')
@@ -180,6 +187,34 @@ def main(args):
             results.to_csv(file_path, index=False)
             with open(pickle_path, "wb") as f:
                 pickle.dump(results_dict, f)
+        elif model == 'resnet50':
+            #mlp = ResNet32(num_classes=20)
+            mlp = ResNet50(num_classes=14, fine_tune_all=False)
+            if mlp.fine_tune_all:
+                params_to_optimize = mlp.parameters()
+            else:
+                params_to_optimize = mlp.resnet50.fc.parameters()
+            optim = optim.Adam(params_to_optimize, lr=learning_rate)
+            
+            #optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
+            #optim = torch.optim.SGD(mlp.parameters(), lr=learning_rate)
+            mlp, results = train_and_evaluate(mlp, trainloader, testloader, optimizer=optim, 
+                                            loss_fn=loss_fn, corr_p=corr_p, num_epochs=epochs, 
+                                            sound=10, rep=i, loss_type=loss_type)
+            results_dict = {'overall_models': mlp}
+            res_dir = f"Results/{dataset}_{corruption}"
+            os.makedirs(res_dir, exist_ok=True)
+            if corr_n is not None:
+                file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.csv'
+                pickle_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.pkl'
+            else:
+                file_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.csv'
+                pickle_name = f'{loss_type}_p_+{corr_p}p_-{corr_n}_{i}.pkl'
+            file_path = os.path.join(res_dir, file_name)
+            pickle_path = os.path.join(res_dir, pickle_name)
+            results.to_csv(file_path, index=False)
+            with open(pickle_path, "wb") as f:
+                pickle.dump(results_dict, f)
         elif model == 'resnet32':
             #mlp = ResNet32(num_classes=20)
             mlp = ResNet(BasicBlock, layers=[5, 5, 5], num_classes=20)
@@ -231,6 +266,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     main(args)
 
+
+# Clothing1M
+# python main.py --reps 1 --dataset clothing1m --model resnet50 --corruption clothing --loss_type Forward --corr_p 0.2 --corr_n 0.2 --epochs 100
+# python main.py --reps 1 --dataset clothing1m --model resnet50 --corruption clothing --loss_type Backward --corr_p 0.2 --corr_n 0.2 --epochs 100
+# python main.py --reps 1 --dataset clothing1m --model resnet50 --corruption clothing --loss_type FB_decomposed --corr_p 0.2 --corr_n 0.2 --epochs 100
 
 # BINARY ok
 ## Noisy

@@ -21,6 +21,12 @@ from torchvision import datasets, transforms
 import pandas as pd
 import pickle
 
+import os
+
+from PIL import Image
+
+
+
 
 class Data_handling(Dataset):
     def __init__(self, dataset, train_size, test_size = None, valid_size = None, batch_size = 64, shuffling = False, splitting_seed = None):
@@ -237,9 +243,237 @@ class Data_handling(Dataset):
 
             self.num_classes = len(np.unique(self.train_dataset.targets))
             print(self.num_classes)
-        elif self.dataset in ['Clothing1M']:
-            #TBD
-            pass
+        elif self.dataset == 'clothing1m':
+            metadata_dir = '/export/usuarios_ml4ds/danibacaicoa/ForwardBackard_losses_old/Datasets/raw_datasets/Clothing1M/'
+            # Define the root directory where images are actually stored. Often the same as metadata_dir.
+            # Adjust if your images are in a subdirectory like 'Clothing1M/images/'
+            image_root_dir = metadata_dir
+
+            # --- Keep your path definitions ---
+            clean_label_kv_path = os.path.join(metadata_dir, 'clean_label_kv.txt')
+            noisy_label_kv_path = os.path.join(metadata_dir, 'noisy_label_kv.txt')
+            clean_train_key_list_path = os.path.join(metadata_dir, 'clean_train_key_list.txt')
+            noisy_train_key_list_path = os.path.join(metadata_dir, 'noisy_train_key_list.txt')
+            clean_val_key_list_path = os.path.join(metadata_dir, 'clean_val_key_list.txt')
+            clean_test_key_list_path = os.path.join(metadata_dir, 'clean_test_key_list.txt')
+            category_names_eng_path = os.path.join(metadata_dir, 'category_names_eng.txt')
+
+            # --- Keep your helper functions load_labels, load_key_list ---
+            def load_labels(filepath):
+                labels = {}
+                with open(filepath, 'r') as f:
+                    for line in f:
+                        parts = line.strip().split()
+                        if len(parts) == 2:
+                            image_path = os.path.normpath(parts[0])
+                            labels[image_path] = int(parts[1]) # Store as integer
+                return labels
+
+            def load_key_list(filepath):
+                keys = []
+                with open(filepath, 'r') as f:
+                    for line in f:
+                        image_path = os.path.normpath(line.strip())
+                        if image_path:
+                            keys.append(image_path)
+                return keys
+
+            # --- Load category names and set num_classes ---
+            category_names = []
+            if os.path.exists(category_names_eng_path):
+                with open(category_names_eng_path, 'r') as f:
+                    category_names = [line.strip() for line in f if line.strip()]
+            self.num_classes = len(category_names)
+            c = self.num_classes
+            print(f"Found {c} categories.")
+
+            # --- Load all label mappings and key lists ---
+            clean_labels_map = load_labels(clean_label_kv_path)
+            noisy_labels_map = load_labels(noisy_label_kv_path)
+
+            # Using ALL noisy labels as the training set base (common approach)
+            # If you need the mix from your original code, adapt the logic here
+            train_keys = list(noisy_labels_map.keys())
+            train_labels_int = [noisy_labels_map[k] for k in train_keys]
+            print(f"Using {len(train_keys)} noisy samples for training set (from noisy_label_kv.txt).")
+
+            # Load validation and test keys
+            val_keys = load_key_list(clean_val_key_list_path)
+            test_keys = load_key_list(clean_test_key_list_path)
+
+            # Filter val/test keys to ensure they have a clean label available
+            test_keys = [k for k in test_keys if k in clean_labels_map]
+
+            # Get integer labels for val/test using the clean map
+            test_labels_int = [clean_labels_map[k] for k in test_keys]
+
+            print(f"Loaded {len(val_keys)} validation samples (clean labels).")
+            print(f"Loaded {len(test_keys)} test samples (clean labels).")
+
+            # --- Define Transformations ---
+            # Define separate transforms for train (with augmentation) and eval (no augmentation)
+            self.train_transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.RandomHorizontalFlip(), # Add data augmentation for training
+                # Add other augmentations if desired (e.g., RandomCrop, ColorJitter)
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+
+            self.eval_transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                # No augmentation for validation/testing
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+            # Keep a reference to the basic transform if needed elsewhere
+            self.transform = self.eval_transform
+
+            # !!! REMOVE THE OLD NUMPY ARRAY CREATION AND LOADING LOOPS !!!
+            # X_train = np.zeros(...) - REMOVED
+            # for i, (key, label, _) in enumerate(self.samples): ... - REMOVED
+            # y_train = np.zeros(...) - REMOVED
+            # ... etc for X_test, y_test ... - REMOVED
+
+            # --- Instantiate the Custom Dataset objects ---
+            self.train_dataset = Clothing1MDataset(root_dir=image_root_dir,
+                                                image_keys=train_keys,
+                                                labels=train_labels_int,
+                                                transform=self.train_transform)
+
+
+            self.test_dataset = Clothing1MDataset(root_dir=image_root_dir,
+                                                image_keys=test_keys,
+                                                labels=test_labels_int,
+                                                transform=self.eval_transform) # Use eval transform
+
+
+            # --- Store number of samples (now derived from dataset lengths) ---
+            self.train_num_samples = len(self.train_dataset)
+            self.test_num_samples = len(self.test_dataset)
+
+            # !!! REMOVE THE CIFAR-LIKE MANIPULATIONS !!!
+            # self.train_dataset.data = torch.tensor(...) - REMOVED
+            # self.train_dataset.targets = torch.tensor(...) - REMOVED
+            # ... etc ... - REMOVED
+
+            # Store weak labels (noisy train labels) if needed by your specific method
+            # Ensure train_labels_int matches the labels in self.train_dataset
+            self.weak_labels = torch.tensor(train_labels_int, dtype=torch.long)
+
+            self.num_features = None # Input features handled by model layers
+
+
+
+
+        elif self.dataset in ['clothing1m_not_efficient']:
+            metadata_dir = '/export/usuarios_ml4ds/danibacaicoa/ForwardBackard_losses_old/Datasets/raw_datasets/Clothing1M/'
+            clean_label_kv_path = os.path.join(metadata_dir, 'clean_label_kv.txt')
+            noisy_label_kv_path = os.path.join(metadata_dir, 'noisy_label_kv.txt')
+            clean_train_key_list_path = os.path.join(metadata_dir, 'clean_train_key_list.txt')
+            noisy_train_key_list_path = os.path.join(metadata_dir, 'noisy_train_key_list.txt')
+            clean_val_key_list_path = os.path.join(metadata_dir, 'clean_val_key_list.txt')
+            clean_test_key_list_path = os.path.join(metadata_dir, 'clean_test_key_list.txt')
+            category_names_eng_path = os.path.join(metadata_dir, 'category_names_eng.txt')
+
+            def load_labels(filepath):
+                """Loads image path -> label mapping from a file."""
+                labels = {}
+
+                with open(filepath, 'r') as f:
+                    for line in f:
+                        parts = line.strip().split()
+                        if len(parts) == 2:
+
+                            image_path = os.path.normpath(parts[0])
+                            labels[image_path] = int(parts[1])
+                        else:
+
+                            pass # print(f"Warning: Skipping malformed line in {filepath}: {line.strip()}")
+                return labels
+            def load_key_list(filepath):
+                """Loads a list of image paths from a file."""
+                keys = []
+
+                with open(filepath, 'r') as f:
+                    for line in f:
+
+                        image_path = os.path.normpath(line.strip())
+                        if image_path: # Ensure line is not empty
+                            keys.append(image_path)
+                return keys
+
+            category_names = None
+
+            if os.path.exists(category_names_eng_path):
+                with open(category_names_eng_path, 'r') as f:
+                    category_names = [line.strip() for line in f if line.strip()]
+
+
+            c = len(category_names)
+            
+            self.samples = []
+
+            clean_labels = load_labels(clean_label_kv_path)
+            noisy_labels = load_labels(noisy_label_kv_path)
+            clean_keys = load_key_list(clean_train_key_list_path)
+            noisy_keys = load_key_list(noisy_train_key_list_path)
+            test_keys = load_key_list(clean_test_key_list_path)
+
+            for key in noisy_keys:
+                if key in noisy_labels:
+                    self.samples.append((key, np.eye(c)[noisy_labels[key]], 1)) # 1 for noisy
+            for key in clean_keys:
+                if key in clean_labels and key not in noisy_labels:
+                    self.samples.append((key, np.eye(c)[clean_labels[key]], 0)) # 0 for clean
+
+            for key in test_keys:
+                if key in clean_labels:
+                    self.samples.append((key, clean_labels[key], 0))
+
+            self.transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) # ImageNet stats commonly used
+            ])
+
+            X_train = np.zeros((len(self.samples), 3, 224, 224))
+            for i, (key, label, _) in enumerate(self.samples):
+                image_path = os.path.join(metadata_dir, key)
+                image = Image.open(image_path).convert('RGB')
+                image = self.transform(image)
+                X_train[i] = image
+            y_train = np.zeros((len(self.samples), c))
+            for i, (_, label, _) in enumerate(self.samples):
+                y_train[i] = label
+            X_test = np.zeros((len(self.test_samples), 3, 224, 224))
+            for i, (key, label, _) in enumerate(self.test_samples):
+                image_path = os.path.join(metadata_dir, key)
+                image = Image.open(image_path).convert('RGB')
+                image = self.transform(image)
+                X_test[i] = image
+            y_test = np.zeros((len(self.test_samples), c))
+            for i, (_, label, _) in enumerate(self.test_samples):
+                y_test[i] = label
+
+
+            self.train_num_samples = self.train_dataset.data.shape[0]
+            self.test_num_samples = self.test_dataset.data.shape[0]
+            
+            self.train_dataset.data = torch.tensor(self.train_dataset.data, dtype=torch.float32)
+            self.train_dataset.data = self.train_dataset.data.permute(0, 3, 1, 2) 
+            self.test_dataset.data = torch.tensor(self.test_dataset.data, dtype=torch.float32)
+            self.test_dataset.data = self.test_dataset.data.permute(0, 3, 1, 2) 
+            self.num_features = None
+
+            self.train_dataset.targets = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in self.train_dataset.targets], dtype=torch.long)
+            self.test_dataset.targets = torch.tensor([fine_to_coarse_mapping[fine_idx] for fine_idx in self.test_dataset.targets], dtype=torch.long)
+
+            self.num_classes = len(np.unique(self.train_dataset.targets))
+            print(self.num_classes)
+            self.weak_labels = y_train
+            
         else: 
             if self.dataset in openml_ids:
                 data = openml.datasets.get_dataset(openml_ids[self.dataset])
@@ -309,8 +543,13 @@ class Data_handling(Dataset):
 
             self.num_classes = len(np.unique(y))
             self.num_features = X.shape[1]
-
-            X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, train_size = self.tr_size, random_state = self.splitting_seed)
+            if dataset == 'clothing1m':
+                self.num_classes = len(np.unique(y_train))
+                self.num_features = X_train.shape[1]
+            else:
+                X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, train_size = self.tr_size, random_state = self.splitting_seed)
+                self.num_classes = len(np.unique(y))
+                self.num_features = X.shape[1]
 
             self.train_num_samples = X_train.shape[0]
             self.test_num_samples = X_test.shape[0]
@@ -328,9 +567,9 @@ class Data_handling(Dataset):
             self.train_dataset.targets = self.train_dataset.tensors[1]
             self.test_dataset.data = self.test_dataset.tensors[0]
             self.test_dataset.targets = self.test_dataset.tensors[1]
-            
-        self.train_dataset.targets = torch.eye(self.num_classes)[self.train_dataset.targets]
-        self.test_dataset.targets = torch.eye(self.num_classes)[self.test_dataset.targets]
+        if self.dataset not in ['clothing1m','clothing1m_not_efficient']:    
+            self.train_dataset.targets = torch.eye(self.num_classes)[self.train_dataset.targets]
+            self.test_dataset.targets = torch.eye(self.num_classes)[self.test_dataset.targets]
 
         '''#One hot encoding of the labels
         print(self.train_dataset.targets)
@@ -402,3 +641,67 @@ class Data_handling(Dataset):
             self.virtual_labels = vy
         else:
             self.virtual_labels = torch.from_numpy(vy)
+
+
+
+
+
+class Clothing1MDataset(Dataset):
+    """
+    Custom PyTorch Dataset for Clothing1M.
+    Loads images on the fly based on index.
+    """
+    def __init__(self, root_dir, image_keys, labels, transform=None):
+        """
+        Args:
+            root_dir (string): Directory with all the image subfolders or images.
+            image_keys (list): List of relative image paths (e.g., 'images/123/abc.jpg').
+            labels (list): List of integer labels corresponding to image_keys.
+            transform (callable, optional): Optional transform to be applied on a sample.
+        """
+        self.root_dir = root_dir
+        self.image_keys = image_keys
+        self.labels = labels
+        self.transform = transform
+
+    def __len__(self):
+        # Returns the total number of samples in this split
+        return len(self.image_keys)
+
+    def __getitem__(self, idx):
+        # 1. Get the image key (relative path) and label for the index
+        img_key = self.image_keys[idx]
+        # Use try-except for label access in case lists are mismatched (shouldn't happen ideally)
+        try:
+            label = torch.tensor(self.labels[idx], dtype=torch.long)
+        except IndexError:
+            print(f"Warning: Label index {idx} out of bounds.")
+            # Handle error: return dummy label or re-raise
+            label = torch.tensor(-1, dtype=torch.long) # Example: dummy label
+
+        # 2. Construct the full image path
+        # IMPORTANT: Verify this join logic. If root_dir is '/path/to/Clothing1M'
+        # and img_key is 'images/123/abc.jpg', this should be correct.
+        img_path = os.path.join(self.root_dir, img_key)
+
+        try:
+            # 3. Load the image using PIL
+            image = Image.open(img_path).convert('RGB')
+
+            # 4. Apply transformations (if any)
+            if self.transform:
+                image = self.transform(image)
+
+        except FileNotFoundError:
+            print(f"Warning: Image file not found at {img_path} for index {idx}. Returning placeholder.")
+            # Return a placeholder tensor if image is missing
+            image = torch.zeros((3, 224, 224), dtype=torch.float32) # Match transform output type/size
+            # Keep the original label or a specific error label
+        except Exception as e:
+            print(f"Warning: Error loading/transforming image {img_path} at index {idx}: {e}. Returning placeholder.")
+            # Handle other potential errors during loading or transform
+            image = torch.zeros((3, 224, 224), dtype=torch.float32)
+            # Keep the original label or a specific error label
+
+        # 5. Return the transformed image tensor and label tensor
+        return image, label

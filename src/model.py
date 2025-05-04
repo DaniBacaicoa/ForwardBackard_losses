@@ -619,3 +619,59 @@ class ResNet_18(nn.Module):
 
     def forward(self, x):
         return self.resnet(x)
+class ResNet50(nn.Module):
+    """
+    A ResNet-50 model pre-trained on ImageNet, adapted for the Clothing1M dataset.
+
+    The final fully connected layer is replaced to match the number of classes
+    in the Clothing1M dataset (14 classes).
+    """
+    def __init__(self, num_classes=14, fine_tune_all=False):
+        """
+        Initializes the ResNet50Clothing1M model.
+
+        Args:
+            num_classes (int): The number of output classes (default: 14 for Clothing1M).
+            pretrained (bool): Whether to load weights pre-trained on ImageNet (default: True).
+        """
+        super(ResNet50, self).__init__()
+
+        self.fine_tune_all = fine_tune_all
+
+        # Load the pre-trained ResNet-50 model
+        # Use weights=models.ResNet50_Weights.IMAGENET1K_V1 for older torchvision
+        # or weights=models.ResNet50_Weights.DEFAULT for newer versions
+        weights = models.ResNet50_Weights.DEFAULT
+
+        self.resnet50 = models.resnet50(weights=weights)
+
+        # Get the number of input features for the original fully connected layer
+        num_ftrs = self.resnet50.fc.in_features
+
+        # Replace the final fully connected layer (fc) with a new one
+        # The new layer has the same number of input features but outputs
+        # `num_classes` features, suitable for the Clothing1M dataset.
+        self.resnet50.fc = nn.Linear(num_ftrs, num_classes)
+        if not fine_tune_all:
+            print("Freezing base model parameters. Only the final classifier will be trained.")
+            # Freeze all parameters first
+            for param in self.resnet50.parameters():
+                param.requires_grad = False
+            # Unfreeze the parameters of the final layer (fc)
+            for param in self.resnet50.fc.parameters():
+                param.requires_grad = True
+        else:
+            print("All model parameters will be fine-tuned.")
+
+
+    def forward(self, x):
+        """
+        Defines the forward pass of the model.
+
+        Args:
+            x (torch.Tensor): The input tensor (batch of images).
+
+        Returns:
+            torch.Tensor: The output tensor (logits for each class).
+        """
+        return self.resnet50(x)

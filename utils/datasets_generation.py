@@ -41,7 +41,34 @@ def generate_dataset(dataset, corruption, batch_size = 16, train_size = 0.8, cor
     pickle.dump(Dataset,f)
     f.close()
 
+''''
+ def generate_clothing1m(dataset):
+    #corruption = corruption
+    base_dir = "Datasets/weak_datasets"
 
+    folder_path = os.path.join(base_dir, f'{dataset}')
+
+    # Check if the folder exists, if not, create it
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    Data = Data_handling(dataset=dataset, train_size=0.8)
+    Weak = Weakener(Data.num_classes)
+    train_X,train_y,test_X,test_y =  Data.get_data()
+    #print("Shape of self.M:", Weak.M.shape)
+    #print("Value of tl:", train_y.shape)
+    #print("Value of tl:", train_y)
+    #breakpoint()
+
+
+    Dataset = [Data, Weak]
+    if repetitions is None:
+        f = open(folder_path + f"/Dataset.pkl", "wb")
+    else:
+        f = open(folder_path + f"/Dataset_{repetitions}.pkl", "wb")
+    pickle.dump(Dataset,f)
+    f.close()
+'''
 
 
 

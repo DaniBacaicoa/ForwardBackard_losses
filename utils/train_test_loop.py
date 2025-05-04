@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
+
 import pandas as pd
 import os
 import pickle
@@ -24,7 +25,7 @@ torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
 '''
 
-def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, corr_p, rep = None, sound=10, loss_type = None):
+def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_epochs, corr_p, rep = None, sound=10, loss_type = None, clothing = False):
     seed = 42  # You can choose any integer seed
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -49,6 +50,8 @@ def train_and_evaluate(model, trainloader, testloader, optimizer, loss_fn, num_e
 
         for inputs, vl, targets in trainloader: 
             inputs, vl, targets = inputs.to(device), vl.to(device), targets.to(device)
+            if clothing:
+                vl = nn.F.one_hot(vl, num_classes=14).float()
 
             optimizer.zero_grad()
             outputs = model(inputs)
